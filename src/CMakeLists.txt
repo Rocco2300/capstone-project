@@ -1,4 +1,6 @@
-add_library(src Mesh.cpp)
+add_library(src
+        Mesh.cpp
+        Transformable.cpp)
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
