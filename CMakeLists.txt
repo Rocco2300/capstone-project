@@ -1,7 +1,12 @@
+cmake_minimum_required(VERSION 3.23)
+
 project(capstone-project)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(${PROJECT_NAME} main.cpp)
+include_directories(include)
+file(GLOB HEADERS include/*.hpp)
+add_executable(${PROJECT_NAME} main.cpp ${HEADERS})
 
-target_link_libraries(${PROJECT_NAME} glfw3 glew32 opengl32)
+add_subdirectory(src)
+target_link_libraries(${PROJECT_NAME} src glfw3 glew32)
