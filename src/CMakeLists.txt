@@ -1,5 +1,6 @@
 add_library(src
         Mesh.cpp
+        Camera.cpp
         Transformable.cpp)
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
