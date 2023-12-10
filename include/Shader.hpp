@@ -2,8 +2,6 @@
 
 #include "Types.hpp"
 
-#include <GL/glew.h>
-
 #include <string>
 
 class Shader {
@@ -13,10 +11,10 @@ private:
 public:
     Shader(const std::string& vertexPath, const std::string& fragmentPath);
 
-    void bind();
+    void use();
 
 private:
     std::string loadFile(const std::string& path);
-    uint32 compileShader(const char* shaderCode, GLenum shaderType);
+    uint32 compileShader(const char* shaderCode, uint32 shaderType);
     void linkProgram(uint32 vertexShaderId, uint32 fragmentShaderId);
 };

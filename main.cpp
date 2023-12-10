@@ -1,14 +1,11 @@
+#include "Mesh.hpp"
+#include "Camera.hpp"
+#include "Shader.hpp"
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
 #include <iostream>
-
-static const struct {
-    float x, y;
-    float r, g, b;
-} vertices[3] = {{-0.6f, -0.4f, 1.f, 0.f, 0.f},
-                 {0.6f, -0.4f, 0.f, 1.f, 0.f},
-                 {0.f, 0.6f, 0.f, 0.f, 1.f}};
 
 static void errorCallback(int error, const char* description) {
     std::cerr << "Error: " << description << '\n';

@@ -1,5 +1,7 @@
 #include "Shader.hpp"
 
+#include <GL/glew.h>
+
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -8,12 +10,16 @@ Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath) {
     auto vertexShader = loadFile(vertexPath);
     auto fragmentShader = loadFile(fragmentPath);
 
-    auto vertexId = compileShader(vertexShader, GL_VERTEX_SHADER);
-    auto fragmentId = compileShader(fragmentShader, GL_FRAGMENT_SHADER);
+    auto vertexId = compileShader(vertexShader.c_str(), GL_VERTEX_SHADER);
+    auto fragmentId = compileShader(fragmentShader.c_str(), GL_FRAGMENT_SHADER);
 
     linkProgram(vertexId, fragmentId);
     glDeleteShader(vertexId);
     glDeleteShader(fragmentId);
+}
+
+void Shader::use() {
+    glUseProgram(m_id);
 }
 
 std::string Shader::loadFile(const std::string& path) {
@@ -27,7 +33,7 @@ std::string Shader::loadFile(const std::string& path) {
     return ss.str();
 }
 
-uint32 Shader::compileShader(const char* shaderCode, GLenum shaderType) {
+uint32 Shader::compileShader(const char* shaderCode, uint32 shaderType) {
     uint32 shaderId = glCreateShader(shaderType);
     glShaderSource(shaderId, 1, &shaderCode, nullptr);
     glCompileShader(shaderId);
