@@ -1,4 +1,4 @@
-#include "Mesh.hpp"
+#include "Plane.hpp"
 #include "Camera.hpp"
 #include "Shader.hpp"
 
@@ -47,6 +47,9 @@ int main() {
         glfwTerminate();
         return -1;
     }
+
+    Plane mesh;
+    mesh.generate(1, 1);
 
     while (!glfwWindowShouldClose(window)) {
         int width, height;

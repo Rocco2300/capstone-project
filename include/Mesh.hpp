@@ -15,8 +15,6 @@ private:
     uint32 m_vbo{};
     uint32 m_ebo{};
 
-    glm::vec2 m_size{};
-
     std::vector<Vertex> m_vertices;
     std::vector<uint32> m_indices;
 
