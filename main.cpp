@@ -1,9 +1,11 @@
-#include "Plane.hpp"
 #include "Camera.hpp"
+#include "Plane.hpp"
 #include "Shader.hpp"
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/transform.hpp>
 
 #include <iostream>
 
@@ -31,7 +33,7 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     GLFWwindow* window =
-            glfwCreateWindow(640, 480, "Capstone", nullptr, nullptr);
+            glfwCreateWindow(480, 480, "Capstone", nullptr, nullptr);
     if (!window) {
         std::cerr << "Window creation failed.\n";
         glfwTerminate();
@@ -50,11 +52,32 @@ int main() {
 
     Plane mesh;
     mesh.generate(1, 1);
+    mesh.setPosition({-1.f, 1.f, 0.f});
+
+    Camera camera;
+    camera.setView({0.f, 0.f, 1.f}, {0.f, 0.f, -1.f});
+    camera.setPerspective(45.f, 1.f, 0.1f, 100.f);
+
+    Shader shader("../shaders/ocean_surface.vert",
+                  "../shaders/ocean_surface.frag");
+    shader.use();
+    auto mvpLocation = glGetUniformLocation(shader.getId(), "mvp");
+    auto perspective = glm::perspective(45.f, 1.f, 0.1f, 1000.f);
+    auto view = glm::lookAt(glm::vec3{0.f, 0.f, 1.f}, {0.f, 0.f, 0.f},
+                            {0.f, 1.f, 0.f});
+    auto translation = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, 1.f));
+    auto mvp = camera.getPerspective() * camera.getView() * mesh.getTransform();
+    glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, glm::value_ptr(mvp));
 
     while (!glfwWindowShouldClose(window)) {
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
         glViewport(0, 0, width, height);
+
+        mesh.bind();
+        glDrawElements(GL_TRIANGLES, mesh.getIndices().size(), GL_UNSIGNED_INT,
+                       0);
+        mesh.unbind();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
