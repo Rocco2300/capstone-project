@@ -18,14 +18,15 @@ Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath) {
     glDeleteShader(fragmentId);
 }
 
-void Shader::use() {
-    glUseProgram(m_id);
-}
+uint32 Shader::getId() { return m_id; }
+
+void Shader::use() { glUseProgram(m_id); }
 
 std::string Shader::loadFile(const std::string& path) {
     std::ifstream in(path);
     if (in.fail()) {
-        std::cerr << "Error: Cannot open file " << path << '\n';
+        std::cout << "Error: Cannot open file " << path << '\n';
+        return "";
     }
 
     std::stringstream ss;

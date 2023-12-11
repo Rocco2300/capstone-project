@@ -11,6 +11,8 @@ private:
 public:
     Shader(const std::string& vertexPath, const std::string& fragmentPath);
 
+    uint32 getId();
+
     void use();
 
 private:
