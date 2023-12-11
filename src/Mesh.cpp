@@ -3,13 +3,20 @@
 #include <GL/glew.h>
 #include <glm/gtx/transform.hpp>
 
-Mesh::Mesh(const std::vector<Vertex>& vertices,
-           const std::vector<uint32>& indices)
-    : m_vertices{vertices}, m_indices{indices} {
-    bindBufferData();
+Mesh::Mesh(const std::vector<uint32>& indices,
+           const std::vector<Vertex>& vertices) {
+    setData(indices, vertices);
 }
 
 std::vector<uint32>& Mesh::getIndices() { return m_indices; }
+
+void Mesh::setData(const std::vector<uint32>& indices,
+                   const std::vector<Vertex>& vertices) {
+    m_indices = indices;
+    m_vertices = vertices;
+
+    bindBufferData();
+}
 
 void Mesh::bind() {
     glBindVertexArray(m_vao);
