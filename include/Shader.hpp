@@ -2,6 +2,8 @@
 
 #include "Types.hpp"
 
+#include <glm/glm.hpp>
+
 #include <string>
 
 class Shader {
@@ -14,6 +16,7 @@ public:
     uint32 getId();
 
     void use();
+    void setUniform(const std::string& name, glm::mat4 mat);
 
 private:
     std::string loadFile(const std::string& path);

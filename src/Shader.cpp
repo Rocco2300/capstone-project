@@ -1,6 +1,7 @@
 #include "Shader.hpp"
 
 #include <GL/glew.h>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <fstream>
 #include <iostream>
@@ -21,6 +22,16 @@ Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath) {
 uint32 Shader::getId() { return m_id; }
 
 void Shader::use() { glUseProgram(m_id); }
+
+void Shader::setUniform(const std::string& name, glm::mat4 mat) {
+    auto location = glGetUniformLocation(m_id, name.c_str());
+    if (location == -1) {
+        std::cerr << "Uniform " << name << " not found in program.\n";
+        return;
+    }
+
+    glProgramUniformMatrix4fv(m_id, location, 1, GL_FALSE, glm::value_ptr(mat));
+}
 
 std::string Shader::loadFile(const std::string& path) {
     std::ifstream in(path);

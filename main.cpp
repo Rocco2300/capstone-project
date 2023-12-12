@@ -56,10 +56,9 @@ int main() {
     camera.setPerspective(45.f, 1.f, 0.1f, 100.f);
 
     Shader shader("../shaders/ocean_surface.vert", "../shaders/ocean_surface.frag");
-    shader.use();
-    auto mvpLocation = glGetUniformLocation(shader.getId(), "mvp");
     auto mvp = camera.getPerspective() * camera.getView() * mesh.getTransform();
-    glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, glm::value_ptr(mvp));
+    shader.setUniform("mvp", mvp);
+    shader.use();
 
     while (!glfwWindowShouldClose(window)) {
         int width, height;
