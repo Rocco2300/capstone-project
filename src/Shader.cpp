@@ -45,8 +45,7 @@ uint32 Shader::compileShader(const char* shaderCode, uint32 shaderType) {
         char error[512];
         glGetShaderInfoLog(shaderId, 512, nullptr, error);
 
-        auto shaderTypeStr =
-                (shaderType == GL_VERTEX_SHADER) ? "vertex" : "fragment";
+        auto shaderTypeStr = (shaderType == GL_VERTEX_SHADER) ? "vertex" : "fragment";
         std::cerr << "Error: Compilation of " << shaderTypeStr << " failed.\n";
         std::cerr << error << '\n';
 

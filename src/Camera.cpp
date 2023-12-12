@@ -7,8 +7,7 @@ Camera::Camera(glm::vec3 position,
                float fov,
                float aspect,
                float near,
-               float far)
-     {
+               float far) {
     setPosition(position);
     setView(position, center);
     setPerspective(fov, aspect, near, far);
