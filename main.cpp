@@ -52,7 +52,9 @@ int main() {
 
     Plane mesh;
     mesh.generate(1, 1);
-    mesh.setPosition({-1.f, 1.f, 0.f});
+//    mesh.setPosition({-0.25f, 0.f, 0.f});
+    mesh.setOrigin({.25f, .25f, 0.f});
+ //   mesh.setRotation({0.f, 0.f, 45.f});
 
     Camera camera;
     camera.setView({0.f, 0.f, 1.f}, {0.f, 0.f, -1.f});
@@ -62,10 +64,6 @@ int main() {
                   "../shaders/ocean_surface.frag");
     shader.use();
     auto mvpLocation = glGetUniformLocation(shader.getId(), "mvp");
-    auto perspective = glm::perspective(45.f, 1.f, 0.1f, 1000.f);
-    auto view = glm::lookAt(glm::vec3{0.f, 0.f, 1.f}, {0.f, 0.f, 0.f},
-                            {0.f, 1.f, 0.f});
-    auto translation = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, 1.f));
     auto mvp = camera.getPerspective() * camera.getView() * mesh.getTransform();
     glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, glm::value_ptr(mvp));
 
