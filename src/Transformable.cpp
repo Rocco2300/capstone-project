@@ -1,5 +1,6 @@
 #include "Transformable.hpp"
 
+#include <glm/gtx/euler_angles.hpp>
 #include <glm/gtx/transform.hpp>
 
 Transformable::Transformable() {
@@ -54,17 +55,17 @@ glm::mat4 Transformable::getTransform() {
 }
 
 void Transformable::updateTransform() {
-    auto scale = glm::scale(glm::mat4(1.f), m_scale);
-    auto rotation = glm::rotate(glm::mat4(1.f), glm::radians(m_rotation.x),
-                                glm::vec3(1.f, 0.f, 0.f)) *
-                    glm::rotate(glm::mat4(1.f), glm::radians(m_rotation.y),
-                                glm::vec3(0.f, 1.f, 0.f)) *
-                    glm::rotate(glm::mat4(1.f), glm::radians(m_rotation.z),
-                                glm::vec3(0.f, 0.f, 1.f));
-    auto translate = glm::translate(glm::mat4(1.f), m_position);
-    auto originTranslate = glm::translate(glm::mat4(1.f), -m_origin);
+    const auto identity = glm::mat4(1.f);
 
-    m_transform =
-            translate * scale * rotation * originTranslate;
+    auto yaw = glm::eulerAngleY(glm::radians(m_rotation.y));
+    auto roll = glm::eulerAngleZ(glm::radians(m_rotation.z));
+    auto pitch = glm::eulerAngleX(glm::radians(m_rotation.x));
+    auto rotation = roll * pitch * yaw;
+
+    auto scale = glm::scale(identity, m_scale);
+    auto translate = glm::translate(identity, m_position);
+    auto originTranslate = glm::translate(identity, -m_origin);
+
+    m_transform = translate * scale * rotation * originTranslate;
     m_transformNeedUpdate = false;
 }
