@@ -8,4 +8,4 @@ add_library(src
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
-target_link_libraries(src glew32 opengl32)
+target_link_libraries(src GLEW::GLEW opengl32 fmt::fmt-header-only)

@@ -33,6 +33,8 @@ public:
     explicit Shader(Type type);
     Shader(Type type, const std::string& filePath);
 
+    ~Shader();
+
     void compile();
     void load(const std::string& filePath);
 };

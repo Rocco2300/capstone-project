@@ -5,6 +5,7 @@ project(capstone-project)
 set(CMAKE_CXX_STANDARD 20)
 
 find_package(GLEW REQUIRED)
+find_package(fmt CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 
 include_directories(include)
@@ -18,4 +19,4 @@ else()
 endif()
 
 add_subdirectory(src)
-target_link_libraries(${PROJECT_NAME} src glfw glew32)
+target_link_libraries(${PROJECT_NAME} src glfw GLEW::GLEW)

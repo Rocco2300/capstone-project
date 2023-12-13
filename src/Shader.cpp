@@ -1,4 +1,5 @@
 #include "Shader.hpp"
+#include "Assert.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -26,6 +27,8 @@ Shader::Shader(Shader::Type type, const std::string& filePath)
     load(m_filePath);
 }
 
+Shader::~Shader() { glDeleteShader(m_id); }
+
 uint32 Shader::get() { return m_id; }
 
 void Shader::compile() {
@@ -48,24 +51,19 @@ void Shader::compile() {
 
     int success{};
     glGetShaderiv(m_id, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        std::cerr << "Error: Compilation of " << shaderTypeToString(m_type) << ' ' << m_filePath
-                  << ' ' << " failed.\n";
-
-        glDeleteShader(m_id);
-        m_compiled = false;
-        // TODO: throw
-        return;
-    }
+    massert(success == true, "Error: Compilation of {} {} failed.\n", shaderTypeToString(m_type),
+            m_filePath);
 
     m_compiled = true;
 }
 
 void Shader::load(const std::string& filePath) {
     std::ifstream in(filePath);
+
     if (in.fail()) {
-        std::cout << "Error: Cannot open file " << filePath << '\n';
-        // TODO: throw
+        // This should not be assert since if we move files and
+        // compile with release we have to know there is a mistake
+        std::cerr << "Error: Cannot open file " << filePath << '\n';
         return;
     }
 

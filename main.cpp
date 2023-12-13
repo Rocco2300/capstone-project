@@ -10,6 +10,8 @@
 
 #include <iostream>
 
+Camera camera;
+
 static void errorCallback(int error, const char* description) {
     std::cerr << "Error: " << description << '\n';
 }
@@ -17,6 +19,11 @@ static void errorCallback(int error, const char* description) {
 static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
+
+    if (key == GLFW_KEY_A && action == GLFW_PRESS)
+    {
+        camera.move(glm::vec3(-0.01f, 0.f, 0.f));
     }
 }
 
@@ -52,7 +59,6 @@ int main() {
     mesh.setOrigin({.25f, .25f, 0.f});
     mesh.setRotation({0.f, 0.f, 45.f});
 
-    Camera camera;
     camera.setView({0.f, 0.f, 1.f}, {0.f, 0.f, -1.f});
     camera.setPerspective(45.f, 1.f, 0.1f, 100.f);
 

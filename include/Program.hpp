@@ -6,6 +6,7 @@
 
 #include <string>
 #include <vector>
+#include <cassert>
 
 class Shader;
 
@@ -18,6 +19,7 @@ private:
 
 public:
     Program();
+    ~Program();
 
     uint32 get();
 
