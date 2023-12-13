@@ -4,8 +4,8 @@
 #include <glm/gtx/transform.hpp>
 
 Transformable::Transformable() {
-    m_scale = glm::vec3(1.f, 1.f, 1.f);
-    m_origin = glm::vec3(0.f, 0.f, 0.f);
+    m_scale    = glm::vec3(1.f, 1.f, 1.f);
+    m_origin   = glm::vec3(0.f, 0.f, 0.f);
     m_position = glm::vec3(0.f, 0.f, 0.f);
     m_rotation = glm::vec3(0.f, 0.f, 0.f);
 
@@ -21,22 +21,22 @@ glm::vec3 Transformable::getPosition() { return m_position; }
 glm::vec3 Transformable::getRotation() { return m_rotation; }
 
 void Transformable::setScale(glm::vec3 scale) {
-    m_scale = scale;
+    m_scale               = scale;
     m_transformNeedUpdate = true;
 }
 
 void Transformable::setOrigin(glm::vec3 origin) {
-    m_origin = origin;
+    m_origin              = origin;
     m_transformNeedUpdate = true;
 }
 
 void Transformable::setPosition(glm::vec3 position) {
-    m_position = position;
+    m_position            = position;
     m_transformNeedUpdate = true;
 }
 
 void Transformable::setRotation(glm::vec3 rotation) {
-    m_rotation = rotation;
+    m_rotation            = rotation;
     m_transformNeedUpdate = true;
 }
 
@@ -57,15 +57,15 @@ glm::mat4 Transformable::getTransform() {
 void Transformable::updateTransform() {
     const auto identity = glm::mat4(1.f);
 
-    auto yaw = glm::eulerAngleY(glm::radians(m_rotation.y));
-    auto roll = glm::eulerAngleZ(glm::radians(m_rotation.z));
-    auto pitch = glm::eulerAngleX(glm::radians(m_rotation.x));
+    auto yaw      = glm::eulerAngleY(glm::radians(m_rotation.y));
+    auto roll     = glm::eulerAngleZ(glm::radians(m_rotation.z));
+    auto pitch    = glm::eulerAngleX(glm::radians(m_rotation.x));
     auto rotation = roll * pitch * yaw;
 
-    auto scale = glm::scale(identity, m_scale);
-    auto translate = glm::translate(identity, m_position);
+    auto scale           = glm::scale(identity, m_scale);
+    auto translate       = glm::translate(identity, m_position);
     auto originTranslate = glm::translate(identity, -m_origin);
 
-    m_transform = translate * scale * rotation * originTranslate;
+    m_transform           = translate * scale * rotation * originTranslate;
     m_transformNeedUpdate = false;
 }

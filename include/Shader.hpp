@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Types.hpp"
 #include "Program.hpp"
+#include "Types.hpp"
 
 #include <GL/glew.h>
 
@@ -48,15 +48,15 @@ public:
 class FragmentShader : public Shader {
 public:
     FragmentShader()
-            : Shader(Shader::Type::Fragment) {}
+        : Shader(Shader::Type::Fragment) {}
     explicit FragmentShader(const std::string& filePath)
-            : Shader(Shader::Type::Fragment, filePath) {}
+        : Shader(Shader::Type::Fragment, filePath) {}
 };
 
 class ComputeShader : public Shader {
 public:
     ComputeShader()
-            : Shader(Shader::Type::Compute) {}
+        : Shader(Shader::Type::Compute) {}
     explicit ComputeShader(const std::string& filePath)
-            : Shader(Shader::Type::Compute, filePath) {}
+        : Shader(Shader::Type::Compute, filePath) {}
 };

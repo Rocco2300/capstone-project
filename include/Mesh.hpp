@@ -20,13 +20,11 @@ private:
 
 public:
     Mesh() = default;
-    Mesh(const std::vector<uint32>& indices,
-         const std::vector<Vertex>& vertices);
+    Mesh(const std::vector<uint32>& indices, const std::vector<Vertex>& vertices);
 
     std::vector<uint32>& getIndices();
 
-    void setData(const std::vector<uint32>& indices,
-                 const std::vector<Vertex>& vertices);
+    void setData(const std::vector<uint32>& indices, const std::vector<Vertex>& vertices);
 
     void bind();
     void unbind();

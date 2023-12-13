@@ -10,7 +10,7 @@ Mesh::Mesh(const std::vector<uint32>& indices, const std::vector<Vertex>& vertic
 std::vector<uint32>& Mesh::getIndices() { return m_indices; }
 
 void Mesh::setData(const std::vector<uint32>& indices, const std::vector<Vertex>& vertices) {
-    m_indices = indices;
+    m_indices  = indices;
     m_vertices = vertices;
 
     bindBufferData();

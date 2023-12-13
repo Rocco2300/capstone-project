@@ -1,7 +1,7 @@
 #include "Plane.hpp"
 
 Plane::Plane(uint32 width, uint32 height) {
-    m_width = width;
+    m_width  = width;
     m_height = height;
     generate(width, height);
 }
@@ -9,7 +9,7 @@ Plane::Plane(uint32 width, uint32 height) {
 uint32 Plane::indexFrom2D(int x, int y) { return y * m_width + x; }
 
 void Plane::generate(uint32 width, uint32 height) {
-    m_width = width;
+    m_width  = width;
     m_height = height;
 
     std::vector<uint32> indices;

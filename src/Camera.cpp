@@ -20,7 +20,7 @@ glm::mat4 Camera::getPerspective() { return m_perspective; }
 void Camera::setView(glm::vec3 position, glm::vec3 center) {
     setPosition(position);
     auto direction = glm::normalize(center - position);
-    m_view = glm::lookAt(glm::vec3(0.f), direction, glm::vec3(0.f, 1.f, 0.f));
+    m_view         = glm::lookAt(glm::vec3(0.f), direction, glm::vec3(0.f, 1.f, 0.f));
 }
 
 void Camera::setPerspective(float fov, float aspect, float near, float far) {
