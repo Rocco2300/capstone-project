@@ -2,8 +2,9 @@ add_library(src
         Mesh.cpp
         Camera.cpp
         Transformable.cpp
-        Shader.cpp
-        Plane.cpp)
+        Program.cpp
+        Plane.cpp
+        Shader.cpp)
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 

@@ -1,5 +1,6 @@
 #include "Camera.hpp"
 #include "Plane.hpp"
+#include "Program.hpp"
 #include "Shader.hpp"
 
 #include <GL/glew.h>
@@ -55,10 +56,16 @@ int main() {
     camera.setView({0.f, 0.f, 1.f}, {0.f, 0.f, -1.f});
     camera.setPerspective(45.f, 1.f, 0.1f, 100.f);
 
-    Shader shader("../shaders/ocean_surface.vert", "../shaders/ocean_surface.frag");
+    VertexShader vertexShader("../shaders/ocean_surface.vert");
+    FragmentShader fragmentShader("../shaders/ocean_surface.frag");
+    Program program;
+    program.attachShader(vertexShader);
+    program.attachShader(fragmentShader);
+    program.link();
+    program.use();
+
     auto mvp = camera.getPerspective() * camera.getView() * mesh.getTransform();
-    shader.setUniform("mvp", mvp);
-    shader.use();
+    program.setUniform("mvp", mvp);
 
     while (!glfwWindowShouldClose(window)) {
         int width, height;

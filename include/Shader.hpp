@@ -1,25 +1,62 @@
 #pragma once
 
 #include "Types.hpp"
+#include "Program.hpp"
 
-#include <glm/glm.hpp>
+#include <GL/glew.h>
 
 #include <string>
 
 class Shader {
+public:
+    friend class Program;
+
+    enum class Type : uint32 {
+        Vertex   = GL_VERTEX_SHADER,
+        Fragment = GL_FRAGMENT_SHADER,
+        Compute  = GL_COMPUTE_SHADER
+    };
+
 private:
+    Type m_type;
     uint32 m_id;
 
+    bool m_compiled{};
+
+    std::string m_filePath;
+    std::string m_sourceCode;
+
+protected:
+    uint32 get();
+
 public:
-    Shader(const std::string& vertexPath, const std::string& fragmentPath);
+    explicit Shader(Type type);
+    Shader(Type type, const std::string& filePath);
 
-    uint32 getId();
+    void compile();
+    void load(const std::string& filePath);
+};
 
-    void use();
-    void setUniform(const std::string& name, glm::mat4 mat);
+class VertexShader : public Shader {
+public:
+    VertexShader()
+        : Shader(Shader::Type::Vertex) {}
+    explicit VertexShader(const std::string& filePath)
+        : Shader(Shader::Type::Vertex, filePath) {}
+};
 
-private:
-    std::string loadFile(const std::string& path);
-    uint32 compileShader(const char* shaderCode, uint32 shaderType);
-    void linkProgram(uint32 vertexShaderId, uint32 fragmentShaderId);
+class FragmentShader : public Shader {
+public:
+    FragmentShader()
+            : Shader(Shader::Type::Fragment) {}
+    explicit FragmentShader(const std::string& filePath)
+            : Shader(Shader::Type::Fragment, filePath) {}
+};
+
+class ComputeShader : public Shader {
+public:
+    ComputeShader()
+            : Shader(Shader::Type::Compute) {}
+    explicit ComputeShader(const std::string& filePath)
+            : Shader(Shader::Type::Compute, filePath) {}
 };

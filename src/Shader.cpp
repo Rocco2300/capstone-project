@@ -1,84 +1,75 @@
 #include "Shader.hpp"
 
-#include <GL/glew.h>
-#include <glm/gtc/type_ptr.hpp>
-
 #include <fstream>
 #include <iostream>
 #include <sstream>
 
-Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath) {
-    auto vertexShader = loadFile(vertexPath);
-    auto fragmentShader = loadFile(fragmentPath);
-
-    auto vertexId = compileShader(vertexShader.c_str(), GL_VERTEX_SHADER);
-    auto fragmentId = compileShader(fragmentShader.c_str(), GL_FRAGMENT_SHADER);
-
-    linkProgram(vertexId, fragmentId);
-    glDeleteShader(vertexId);
-    glDeleteShader(fragmentId);
+static std::string shaderTypeToString(Shader::Type type) {
+    switch (type) {
+    case Shader::Type::Vertex:
+        return "vertex";
+    case Shader::Type::Fragment:
+        return "fragment";
+    case Shader::Type::Compute:
+        return "compute";
+    default:
+        return "";
+    }
 }
 
-uint32 Shader::getId() { return m_id; }
+Shader::Shader(Shader::Type type)
+    : m_type{type} {}
 
-void Shader::use() { glUseProgram(m_id); }
+Shader::Shader(Shader::Type type, const std::string& filePath)
+    : m_type{type}
+    , m_filePath{filePath} {
+    load(m_filePath);
+}
 
-void Shader::setUniform(const std::string& name, glm::mat4 mat) {
-    auto location = glGetUniformLocation(m_id, name.c_str());
-    if (location == -1) {
-        std::cerr << "Uniform " << name << " not found in program.\n";
+uint32 Shader::get() { return m_id; }
+
+void Shader::compile() {
+    if (m_compiled) {
         return;
     }
 
-    glProgramUniformMatrix4fv(m_id, location, 1, GL_FALSE, glm::value_ptr(mat));
+    auto* code = m_sourceCode.c_str();
+    m_id       = glCreateShader(static_cast<GLenum>(m_type));
+    glShaderSource(m_id, 1, &code, nullptr);
+    glCompileShader(m_id);
+
+    int len{};
+    glGetShaderiv(m_id, GL_INFO_LOG_LENGTH, &len);
+    if (len > 1) {
+        char buffer[len + 1];
+        glGetShaderInfoLog(m_id, len + 1, nullptr, buffer);
+        std::cerr << buffer << '\n';
+    }
+
+    int success{};
+    glGetShaderiv(m_id, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        std::cerr << "Error: Compilation of " << shaderTypeToString(m_type) << ' ' << m_filePath
+                  << ' ' << " failed.\n";
+
+        glDeleteShader(m_id);
+        m_compiled = false;
+        // TODO: throw
+        return;
+    }
+
+    m_compiled = true;
 }
 
-std::string Shader::loadFile(const std::string& path) {
-    std::ifstream in(path);
+void Shader::load(const std::string& filePath) {
+    std::ifstream in(filePath);
     if (in.fail()) {
-        std::cout << "Error: Cannot open file " << path << '\n';
-        return "";
+        std::cout << "Error: Cannot open file " << filePath << '\n';
+        // TODO: throw
+        return;
     }
 
     std::stringstream ss;
     ss << in.rdbuf();
-    return ss.str();
-}
-
-uint32 Shader::compileShader(const char* shaderCode, uint32 shaderType) {
-    uint32 shaderId = glCreateShader(shaderType);
-    glShaderSource(shaderId, 1, &shaderCode, nullptr);
-    glCompileShader(shaderId);
-
-    int success{};
-    glGetShaderiv(shaderId, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        char error[512];
-        glGetShaderInfoLog(shaderId, 512, nullptr, error);
-
-        auto shaderTypeStr = (shaderType == GL_VERTEX_SHADER) ? "vertex" : "fragment";
-        std::cerr << "Error: Compilation of " << shaderTypeStr << " failed.\n";
-        std::cerr << error << '\n';
-
-        return 0;
-    }
-
-    return shaderId;
-}
-
-void Shader::linkProgram(uint32 vertexShaderId, uint32 fragmentShaderId) {
-    m_id = glCreateProgram();
-    glAttachShader(m_id, vertexShaderId);
-    glAttachShader(m_id, fragmentShaderId);
-    glLinkProgram(m_id);
-
-    int success{};
-    glGetProgramiv(m_id, GL_LINK_STATUS, &success);
-    if (!success) {
-        char error[512];
-        glGetProgramInfoLog(m_id, 512, nullptr, error);
-
-        std::cerr << "Error: Linking failed.\n";
-        std::cerr << error << '\n';
-    }
+    m_sourceCode = ss.str();
 }
