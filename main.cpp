@@ -7,6 +7,10 @@
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
 
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
+
 #include <iostream>
 
 static void errorCallback(int error, const char* description) {
@@ -43,11 +47,9 @@ int main() {
     }
 
     Plane mesh;
-    mesh.generate(2, 2);
-    mesh.setSpacing(0.5f);
-    //    mesh.setPosition({-0.25f, 0.f, 0.f});
+    mesh.setSpacing(0.25f);
+    mesh.generate(512, 512);
     mesh.setOrigin({mesh.getSize().x / 2, 0.f, mesh.getSize().y / 2});
-    mesh.setRotation({-90.f, 0.f, 0.f});
 
     Camera camera;
     camera.setPerspective(45.f, 1.f);
@@ -63,12 +65,19 @@ int main() {
     program.validate();
     program.use();
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glCullFace(GL_BACK);
     glEnable(GL_CULL_FACE);
 
     auto mvp = camera.getPerspective() * camera.getView() * mesh.getTransform();
     program.setUniform("mvp", mvp);
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGui::StyleColorsDark();
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 460");
 
     float prev = glfwGetTime();
     while (!glfwWindowShouldClose(window)) {
@@ -88,14 +97,28 @@ int main() {
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
         mesh.bind();
         glDrawElements(GL_TRIANGLES, mesh.getIndices().size(), GL_UNSIGNED_INT, 0);
         mesh.unbind();
+
+        ImGui::Begin("hello witches!");
+        ImGui::Text("hello world!");
+        ImGui::End();
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 
     glfwDestroyWindow(window);
     glfwTerminate();
