@@ -2,20 +2,11 @@
 
 #include <glm/gtx/transform.hpp>
 
-Camera::Camera(glm::vec3 position,
-               glm::vec3 center,
-               float fov,
-               float aspect,
-               float near,
-               float far) {
-    setPosition(position);
-    setView(position, center);
-    setPerspective(fov, aspect, near, far);
-}
+#include <iostream>
 
 glm::mat4 Camera::getView() { return glm::inverse(getTransform()) * m_view; }
 
-glm::mat4 Camera::getPerspective() { return m_perspective; }
+glm::mat4 Camera::getPerspective() { return m_projection; }
 
 void Camera::setView(glm::vec3 position, glm::vec3 center) {
     setPosition(position);
@@ -24,5 +15,23 @@ void Camera::setView(glm::vec3 position, glm::vec3 center) {
 }
 
 void Camera::setPerspective(float fov, float aspect, float near, float far) {
-    m_perspective = glm::perspective(fov, aspect, near, far);
+    if (m_setProjection) {
+        std::cerr << "Warning: projection already set for camera.\n";
+    }
+
+    m_projection    = glm::perspective(fov, aspect, near, far);
+    m_setProjection = true;
+}
+
+void Camera::setOrthographic(float left,
+                             float right,
+                             float bottom,
+                             float top,
+                             float near,
+                             float far) {
+    if (m_setProjection) {
+        std::cerr << "Warning: projection already set for camera.\n";
+    }
+
+    m_projection = glm::ortho(left, right, bottom, top, near, far);
 }
