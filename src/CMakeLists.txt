@@ -10,4 +10,4 @@ add_library(src
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
-target_link_libraries(src fmt gl3w opengl32)
+target_link_libraries(src fmt glfw gl3w)
