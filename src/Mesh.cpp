@@ -1,6 +1,6 @@
 #include "Mesh.hpp"
 
-#include <GL/glew.h>
+#include <GL/gl3w.h>
 #include <glm/gtx/transform.hpp>
 
 Mesh::Mesh(const std::vector<uint32>& indices, const std::vector<Vertex>& vertices) {

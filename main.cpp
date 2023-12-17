@@ -3,10 +3,8 @@
 #include "Program.hpp"
 #include "Shader.hpp"
 
-#include <GL/glew.h>
+#include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/transform.hpp>
 
 #include <iostream>
 
@@ -47,8 +45,8 @@ int main() {
     glfwSetErrorCallback(errorCallback);
     glfwSetKeyCallback(window, keyCallback);
 
-    if (glewInit() != GLEW_OK) {
-        std::cerr << "GLEW initialization failed.\n";
+    if (gl3wInit()) {
+        std::cerr << "Error: failed to initialize gl3w.\n";
         glfwTerminate();
         return -1;
     }

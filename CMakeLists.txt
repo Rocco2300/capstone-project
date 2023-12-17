@@ -4,11 +4,8 @@ project(capstone-project)
 
 set(CMAKE_CXX_STANDARD 20)
 
-find_package(GLEW REQUIRED)
-find_package(fmt CONFIG REQUIRED)
-find_package(glfw3 CONFIG REQUIRED)
-
 include_directories(include)
+include_directories(external/glm)
 file(GLOB HEADERS include/*.hpp)
 add_executable(${PROJECT_NAME} main.cpp ${HEADERS})
 
@@ -19,4 +16,8 @@ else()
 endif()
 
 add_subdirectory(src)
-target_link_libraries(${PROJECT_NAME} src glfw GLEW::GLEW)
+add_subdirectory(external/fmt)
+add_subdirectory(external/glm)
+add_subdirectory(external/glfw)
+add_subdirectory(external/gl3w)
+target_link_libraries(${PROJECT_NAME} src glfw gl3w)

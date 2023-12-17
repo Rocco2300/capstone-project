@@ -3,7 +3,7 @@
 #include "Assert.hpp"
 
 #include <fmt/core.h>
-#include <GL/glew.h>
+#include <GL/gl3w.h>
 #include <glm/gtc/type_ptr.hpp>
 
 #include <fstream>
