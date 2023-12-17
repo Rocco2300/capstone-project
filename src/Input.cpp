@@ -15,6 +15,7 @@ void Keyboard::callback(GLFWwindow* window, int key, int scancode, int action, i
 bool Keyboard::isKeyPressed(int key) { return m_pressedKeys.count(key); }
 
 glm::vec2 Mouse::m_position{};
+GLFWwindow* Mouse::m_window{};
 std::unordered_set<int> Mouse::m_pressedButtons;
 
 void Mouse::posCallback(GLFWwindow* window, double x, double y) { m_position = {x, y}; }
