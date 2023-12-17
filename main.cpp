@@ -19,8 +19,7 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
         glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
 
-    if (key == GLFW_KEY_A && action == GLFW_PRESS)
-    {
+    if (key == GLFW_KEY_A && action == GLFW_PRESS) {
         camera.move(glm::vec3(-0.01f, 0.f, 0.f));
     }
 }
@@ -54,12 +53,12 @@ int main() {
     Plane mesh;
     mesh.generate(2, 2);
     mesh.setSpacing(0.5f);
-//    mesh.setPosition({-0.25f, 0.f, 0.f});
+    //    mesh.setPosition({-0.25f, 0.f, 0.f});
     mesh.setOrigin({mesh.getSize().x / 2, 0.f, mesh.getSize().y / 2});
-//    mesh.setRotation({0.f, 0.f, 45.f});
+    //    mesh.setRotation({0.f, 0.f, 45.f});
 
     camera.setPerspective(45.f, 1.f);
-//    camera.setOrthographic(-.5f, .5f, .5f, -.5f);
+    //    camera.setOrthographic(-.5f, .5f, .5f, -.5f);
     camera.setView({-2.f, 0.f, 2.f}, {0.f, 0.f, 0.f});
 
     VertexShader vertexShader("../shaders/ocean_surface.vert");
