@@ -2,22 +2,15 @@
 #include "Plane.hpp"
 #include "Program.hpp"
 #include "Shader.hpp"
+#include "Input.hpp"
 
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
 
 #include <iostream>
 
-Camera camera;
-
 static void errorCallback(int error, const char* description) {
     std::cerr << "Error: " << description << '\n';
-}
-
-static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
-    }
 }
 
 int main() {
@@ -38,7 +31,10 @@ int main() {
 
     glfwMakeContextCurrent(window);
     glfwSetErrorCallback(errorCallback);
-    glfwSetKeyCallback(window, keyCallback);
+    glfwSetKeyCallback(window, Keyboard::callback);
+    glfwSetCursorPosCallback(window, Mouse::posCallback);
+    glfwSetMouseButtonCallback(window, Mouse::buttonCallback);
+    Mouse::setWindow(window);
 
     if (gl3wInit()) {
         std::cerr << "Error: failed to initialize gl3w.\n";
@@ -51,11 +47,13 @@ int main() {
     mesh.setSpacing(0.5f);
     //    mesh.setPosition({-0.25f, 0.f, 0.f});
     mesh.setOrigin({mesh.getSize().x / 2, 0.f, mesh.getSize().y / 2});
-    //    mesh.setRotation({0.f, 0.f, 45.f});
+    mesh.setRotation({-90.f, 0.f, 0.f});
 
+    Camera camera;
     camera.setPerspective(45.f, 1.f);
-    //    camera.setOrthographic(-.5f, .5f, .5f, -.5f);
-    camera.setView({0.f, 1.f, 2.f}, {0.f, 0.f, 0.f});
+    camera.setView({0.f, 0.f, -1.f}, {0.f, 0.f, 0.f});
+    camera.setSpeed(3.f);
+    camera.setSensitivity(100.f);
 
     VertexShader vertexShader("../shaders/ocean_surface.vert");
     FragmentShader fragmentShader("../shaders/ocean_surface.frag");
@@ -72,10 +70,23 @@ int main() {
     auto mvp = camera.getPerspective() * camera.getView() * mesh.getTransform();
     program.setUniform("mvp", mvp);
 
+    float prev = glfwGetTime();
     while (!glfwWindowShouldClose(window)) {
+        float now = glfwGetTime();
+        float deltaTime = now - prev;
+        prev = now;
+
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
         glViewport(0, 0, width, height);
+
+        camera.update(deltaTime);
+
+        auto mvp = camera.getPerspective() * camera.getView() * mesh.getTransform();
+        program.setUniform("mvp", mvp);
+
+        glClearColor(0.f, 0.f, 0.f, 0.f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         mesh.bind();
         glDrawElements(GL_TRIANGLES, mesh.getIndices().size(), GL_UNSIGNED_INT, 0);
