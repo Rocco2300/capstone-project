@@ -1,10 +1,8 @@
 #include "Camera.hpp"
-#include "Assert.hpp"
 #include "Input.hpp"
 
 #include <GLFW/glfw3.h>
 #include <glm/gtx/euler_angles.hpp>
-#include <glm/gtx/transform.hpp>
 
 glm::mat4 Camera::getView() {
     if (m_viewNeedUpdate) {
@@ -97,10 +95,7 @@ void Camera::setView(glm::vec3 position, glm::vec3 center) {
 }
 
 void Camera::setPerspective(float fov, float aspect, float near, float far) {
-    massert(m_setProjection == false, "Warning: projection already set for camera.\n");
-
-    m_projection    = glm::perspective(fov, aspect, near, far);
-    m_setProjection = true;
+    m_projection = glm::perspective(fov, aspect, near, far);
 }
 
 void Camera::setOrthographic(float left,
@@ -109,10 +104,7 @@ void Camera::setOrthographic(float left,
                              float top,
                              float near,
                              float far) {
-    massert(m_setProjection == false, "Warning: projection already set for camera.\n");
-
-    m_projection    = glm::ortho(left, right, bottom, top, near, far);
-    m_setProjection = true;
+    m_projection = glm::ortho(left, right, bottom, top, near, far);
 }
 
 void Camera::updateView() {

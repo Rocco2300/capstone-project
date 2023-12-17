@@ -22,8 +22,6 @@ private:
     float m_sensitivity{};
     bool m_viewNeedUpdate{};
 
-    bool m_setProjection{};
-
 public:
     Camera() = default;
 
