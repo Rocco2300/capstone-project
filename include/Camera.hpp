@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Transformable.hpp"
+#include <glm/glm.hpp>
 
-class Camera : public Transformable {
+class Camera {
 private:
     glm::mat4 m_view;
     glm::mat4 m_projection;

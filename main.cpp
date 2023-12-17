@@ -18,10 +18,6 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
-
-    if (key == GLFW_KEY_A && action == GLFW_PRESS) {
-        camera.move(glm::vec3(-0.01f, 0.f, 0.f));
-    }
 }
 
 int main() {
@@ -59,7 +55,7 @@ int main() {
 
     camera.setPerspective(45.f, 1.f);
     //    camera.setOrthographic(-.5f, .5f, .5f, -.5f);
-    camera.setView({-2.f, 0.f, 2.f}, {0.f, 0.f, 0.f});
+    camera.setView({0.f, 1.f, 2.f}, {0.f, 0.f, 0.f});
 
     VertexShader vertexShader("../shaders/ocean_surface.vert");
     FragmentShader fragmentShader("../shaders/ocean_surface.frag");
