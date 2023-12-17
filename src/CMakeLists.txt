@@ -4,7 +4,9 @@ add_library(src
         Transformable.cpp
         Program.cpp
         Plane.cpp
-        Shader.cpp)
+        Shader.cpp
+        Input.cpp
+        )
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
