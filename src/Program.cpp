@@ -10,6 +10,16 @@
 #include <memory>
 #include <sstream>
 
+static void printInfoLog(uint32 id) {
+    int len;
+    glGetProgramiv(id, GL_INFO_LOG_LENGTH, &len);
+    if (len > 1) {
+        char buffer[len + 1];
+        glGetProgramInfoLog(id, len + 1, nullptr, buffer);
+        std::cerr << buffer << '\n';
+    }
+}
+
 Program::Program() { m_id = glCreateProgram(); }
 
 Program::~Program() { glDeleteProgram(m_id); }
@@ -39,13 +49,7 @@ void Program::link() {
 
     glLinkProgram(m_id);
 
-    int len;
-    glGetProgramiv(m_id, GL_INFO_LOG_LENGTH, &len);
-    if (len > 1) {
-        char buffer[len + 1];
-        glGetProgramInfoLog(m_id, len + 1, nullptr, buffer);
-        std::cerr << buffer << '\n';
-    }
+    printInfoLog(m_id);
 
     int success{};
     glGetProgramiv(m_id, GL_LINK_STATUS, &success);
@@ -61,13 +65,7 @@ void Program::validate() {
 
     glValidateProgram(m_id);
 
-    int len;
-    glGetProgramiv(m_id, GL_INFO_LOG_LENGTH, &len);
-    if (len > 1) {
-        char buffer[len + 1];
-        glGetProgramInfoLog(m_id, len + 1, nullptr, buffer);
-        std::cerr << buffer << '\n';
-    }
+    printInfoLog(m_id);
 
     int success{};
     glGetProgramiv(m_id, GL_VALIDATE_STATUS, &success);

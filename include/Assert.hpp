@@ -2,7 +2,6 @@
 
 #include <fmt/core.h>
 
-#include <format>
 #include <iostream>
 
 #ifndef NDEBUG

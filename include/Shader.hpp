@@ -3,23 +3,22 @@
 #include "Program.hpp"
 #include "Types.hpp"
 
-#include <GL/gl3w.h>
-
 #include <string>
 
 class Shader {
 public:
     friend class Program;
 
-    enum class Type : uint32 {
-        Vertex   = GL_VERTEX_SHADER,
-        Fragment = GL_FRAGMENT_SHADER,
-        Compute  = GL_COMPUTE_SHADER
+    enum class Type : int {
+        None = -1,
+        Vertex = 0,
+        Fragment,
+        Compute
     };
 
 private:
-    Type m_type;
-    uint32 m_id;
+    Type m_type{};
+    uint32 m_id{};
 
     bool m_compiled{};
 

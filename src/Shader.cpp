@@ -1,9 +1,24 @@
 #include "Shader.hpp"
 #include "Assert.hpp"
 
+#include <GL/gl3w.h>
+
 #include <fstream>
 #include <iostream>
 #include <sstream>
+
+static int shaderTypetoGLenum(Shader::Type type) {
+    switch (type) {
+    case Shader::Type::Vertex:
+        return GL_VERTEX_SHADER;
+    case Shader::Type::Fragment:
+        return GL_FRAGMENT_SHADER;
+    case Shader::Type::Compute:
+        return GL_COMPUTE_SHADER;
+    default:
+        return -1;
+    }
+}
 
 static std::string shaderTypeToString(Shader::Type type) {
     switch (type) {
@@ -14,7 +29,7 @@ static std::string shaderTypeToString(Shader::Type type) {
     case Shader::Type::Compute:
         return "compute";
     default:
-        return "";
+        return "none";
     }
 }
 
@@ -37,7 +52,7 @@ void Shader::compile() {
     }
 
     auto* code = m_sourceCode.c_str();
-    m_id       = glCreateShader(static_cast<GLenum>(m_type));
+    m_id       = glCreateShader(shaderTypetoGLenum(m_type));
     glShaderSource(m_id, 1, &code, nullptr);
     glCompileShader(m_id);
 
