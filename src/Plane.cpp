@@ -1,12 +1,26 @@
 #include "Plane.hpp"
 
+Plane::Plane()
+    : m_width{2}
+    , m_height{2}
+    , m_spacing{1.f} {}
+
 Plane::Plane(uint32 width, uint32 height) {
-    m_width  = width;
-    m_height = height;
+    m_width   = width;
+    m_height  = height;
+    m_spacing = 1.f;
+
     generate(width, height);
 }
 
-uint32 Plane::indexFrom2D(int x, int y) { return y * m_width + x; }
+glm::vec2 Plane::getSize() {
+    auto floatWidth  = static_cast<float>(m_width);
+    auto floatHeight = static_cast<float>(m_height);
+
+    return {floatWidth * m_spacing, floatHeight * m_spacing};
+}
+
+void Plane::setSpacing(float spacing) { m_spacing = spacing; }
 
 void Plane::generate(uint32 width, uint32 height) {
     m_width  = width;
@@ -14,24 +28,28 @@ void Plane::generate(uint32 width, uint32 height) {
 
     std::vector<uint32> indices;
     std::vector<Vertex> vertices;
-    for (int y = 0; y <= m_height; y++) {
-        for (int x = 0; x <= m_width; x++) {
-            Vertex vertex{x * 0.5f, y * 0.5f, 0.0f};
+    for (int z = 0; z < m_height; z++) {
+        for (int x = 0; x < m_width; x++) {
+            auto floatX = static_cast<float>(x);
+            auto floatZ = static_cast<float>(z);
+            Vertex vertex{floatX * m_spacing, 0.f, floatZ * m_spacing};
             vertices.push_back(vertex);
         }
     }
 
-    for (int y = 0; y <= m_height; y++) {
-        for (int x = 0; x <= m_width; x++) {
-            indices.push_back(indexFrom2D(x, y));
-            indices.push_back(indexFrom2D(x + 1, y));
-            indices.push_back(indexFrom2D(x + 1, y + 1));
+    for (int j = 0; j < m_height - 1; j++) {
+        for (int i = 0; i < m_width - 1; i++) {
+            indices.push_back(indexFrom2D(i, j));
+            indices.push_back(indexFrom2D(i + 1, j + 1));
+            indices.push_back(indexFrom2D(i + 1, j));
 
-            indices.push_back(indexFrom2D(x, y));
-            indices.push_back(indexFrom2D(x + 1, y + 1));
-            indices.push_back(indexFrom2D(x, y + 1));
+            indices.push_back(indexFrom2D(i, j));
+            indices.push_back(indexFrom2D(i, j + 1));
+            indices.push_back(indexFrom2D(i + 1, j + 1));
         }
     }
 
     setData(indices, vertices);
 }
+
+uint32 Plane::indexFrom2D(int x, int y) const { return y * m_width + x; }
