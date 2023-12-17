@@ -34,7 +34,7 @@ int main() {
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-    GLFWwindow* window = glfwCreateWindow(480, 480, "Capstone", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(800, 800, "Capstone", nullptr, nullptr);
     if (!window) {
         std::cerr << "Window creation failed.\n";
         glfwTerminate();
@@ -52,21 +52,27 @@ int main() {
     }
 
     Plane mesh;
-    mesh.generate(1, 1);
-    //    mesh.setPosition({-0.25f, 0.f, 0.f});
-    mesh.setOrigin({.25f, .25f, 0.f});
-    mesh.setRotation({0.f, 0.f, 45.f});
+    mesh.generate(2, 2);
+    mesh.setSpacing(0.5f);
+//    mesh.setPosition({-0.25f, 0.f, 0.f});
+    mesh.setOrigin({mesh.getSize().x / 2, 0.f, mesh.getSize().y / 2});
+//    mesh.setRotation({0.f, 0.f, 45.f});
 
-    camera.setView({0.f, 0.f, 1.f}, {0.f, 0.f, -1.f});
-    camera.setPerspective(45.f, 1.f, 0.1f, 100.f);
+    camera.setPerspective(45.f, 1.f);
+//    camera.setOrthographic(-.5f, .5f, .5f, -.5f);
+    camera.setView({-2.f, 0.f, 2.f}, {0.f, 0.f, 0.f});
 
     VertexShader vertexShader("../shaders/ocean_surface.vert");
     FragmentShader fragmentShader("../shaders/ocean_surface.frag");
     Program program;
     program.attachShader(vertexShader);
     program.attachShader(fragmentShader);
-    program.link();
+    program.validate();
     program.use();
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glCullFace(GL_BACK);
+    glEnable(GL_CULL_FACE);
 
     auto mvp = camera.getPerspective() * camera.getView() * mesh.getTransform();
     program.setUniform("mvp", mvp);

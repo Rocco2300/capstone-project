@@ -53,3 +53,23 @@ void Program::link() {
 
     m_linked = true;
 }
+
+void Program::validate() {
+    if (!m_linked) {
+        link();
+    }
+
+    glValidateProgram(m_id);
+
+    int len;
+    glGetProgramiv(m_id, GL_INFO_LOG_LENGTH, &len);
+    if (len > 1) {
+        char buffer[len + 1];
+        glGetProgramInfoLog(m_id, len + 1, nullptr, buffer);
+        std::cerr << buffer << '\n';
+    }
+
+    int success{};
+    glGetProgramiv(m_id, GL_VALIDATE_STATUS, &success);
+    massert(success == true, "Error: Validation of program failed.\n");
+}
