@@ -28,13 +28,6 @@ uint32 Program::get() { return m_id; }
 
 void Program::use() { glUseProgram(m_id); }
 
-void Program::setUniform(const std::string& name, glm::mat4 mat) {
-    auto location = glGetUniformLocation(m_id, name.c_str());
-    massert(location != -1, "Uniform {} not found in program.\n", name);
-
-    glProgramUniformMatrix4fv(m_id, location, 1, GL_FALSE, glm::value_ptr(mat));
-}
-
 void Program::attachShader(Shader& shader) {
     massert(m_linked == false, "Attach called on linked program.\n");
 
@@ -70,4 +63,18 @@ void Program::validate() {
     int success{};
     glGetProgramiv(m_id, GL_VALIDATE_STATUS, &success);
     massert(success == true, "Error: Validation of program failed.\n");
+}
+
+void Program::setUniform(std::string_view name, int value) {
+    auto location = glGetUniformLocation(m_id, name.data());
+    massert(location != -1, "Uniform {} not found in program.\n", name);
+
+    glProgramUniform1i(m_id, location, value);
+}
+
+void Program::setUniform(std::string_view name, glm::mat4 value) {
+    auto location = glGetUniformLocation(m_id, name.data());
+    massert(location != -1, "Uniform {} not found in program.\n", name);
+
+    glProgramUniformMatrix4fv(m_id, location, 1, GL_FALSE, glm::value_ptr(value));
 }

@@ -13,7 +13,6 @@ class Shader;
 class Program {
 private:
     uint32 m_id{};
-    std::vector<Shader*> m_shaders;
 
     bool m_linked{};
 
@@ -27,5 +26,7 @@ public:
     void link();
     void validate();
     void attachShader(Shader& shader);
-    void setUniform(const std::string& name, glm::mat4 mat);
+
+    void setUniform(std::string_view name, int value);
+    void setUniform(std::string_view name, glm::mat4 value);
 };
