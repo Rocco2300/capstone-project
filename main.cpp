@@ -133,7 +133,7 @@ int main() {
 
         ImGui::Begin("Hello");
 
-        ImGui::Image((void*)texture, {256, 256}, {0, 1}, {1, 0});
+        ImGui::Image(reinterpret_cast<ImTextureID>(texture), {256, 256}, {0, 1}, {1, 0});
 
         ImGui::End();
         ImGui::Render();
