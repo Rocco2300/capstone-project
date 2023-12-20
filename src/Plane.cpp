@@ -14,10 +14,7 @@ Plane::Plane(uint32 width, uint32 height) {
 }
 
 glm::vec2 Plane::getSize() {
-    auto floatWidth  = static_cast<float>(m_width);
-    auto floatHeight = static_cast<float>(m_height);
-
-    return {floatWidth * m_spacing, floatHeight * m_spacing};
+    return {m_width * m_spacing, m_height * m_spacing};
 }
 
 void Plane::setSpacing(float spacing) { m_spacing = spacing; }
@@ -30,9 +27,7 @@ void Plane::generate(uint32 width, uint32 height) {
     std::vector<Vertex> vertices;
     for (int z = 0; z < m_height; z++) {
         for (int x = 0; x < m_width; x++) {
-            auto floatX = static_cast<float>(x);
-            auto floatZ = static_cast<float>(z);
-            Vertex vertex{floatX * m_spacing, 0.f, floatZ * m_spacing};
+            Vertex vertex{x * m_spacing, 0.f, z * m_spacing};
             vertices.push_back(vertex);
         }
     }
