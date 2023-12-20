@@ -18,9 +18,12 @@ private:
     std::vector<Vertex> m_vertices;
     std::vector<uint32> m_indices;
 
+    bool m_generated{};
+
 public:
     Mesh() = default;
     Mesh(const std::vector<uint32>& indices, const std::vector<Vertex>& vertices);
+    ~Mesh();
 
     std::vector<uint32>& getIndices();
 
