@@ -3,6 +3,7 @@
 #include "Plane.hpp"
 #include "Program.hpp"
 #include "Shader.hpp"
+#include "Texture.hpp"
 
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
@@ -72,15 +73,11 @@ int main() {
     computeProgram.attachShader(computeShader);
     computeProgram.validate();
 
-    uint32 texture;
-    glGenTextures(1, &texture);
+    Texture texture;
+    texture.setSize(512, 512);
+    texture.setFormat(GL_RGBA32F, GL_RGBA, GL_FLOAT);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 512, 512, 0, GL_RGBA, GL_FLOAT, nullptr);
     glBindImageTexture(0, texture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 
     computeProgram.use();
@@ -133,7 +130,7 @@ int main() {
 
         ImGui::Begin("Hello");
 
-        ImGui::Image(reinterpret_cast<ImTextureID>(texture), {256, 256}, {0, 1}, {1, 0});
+        ImGui::Image(texture, {256, 256}, {0, 1}, {1, 0});
 
         ImGui::End();
         ImGui::Render();
