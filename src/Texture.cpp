@@ -24,6 +24,10 @@ Texture::Texture(int internalFormat, int width, int height, uint32 format, uint3
     generateTexture();
 }
 
+Texture::~Texture() {
+    glDeleteTextures(1, &m_id);
+}
+
 Texture::operator uint32() const { return m_id; }
 
 Texture::operator ImTextureID() const { return reinterpret_cast<ImTextureID>(m_id); }

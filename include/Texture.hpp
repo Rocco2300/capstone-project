@@ -18,6 +18,7 @@ private:
 public:
     Texture();
     Texture(int internalFormat, int width, int height, uint32 format, uint32 type);
+    ~Texture();
 
     operator uint32() const;
     operator ImTextureID() const;
