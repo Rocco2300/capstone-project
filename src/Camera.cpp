@@ -12,7 +12,7 @@ glm::mat4 Camera::getView() {
     return m_view;
 }
 
-glm::mat4 Camera::getPerspective() { return m_projection; }
+glm::mat4 Camera::getProjection() { return m_projection; }
 
 void Camera::setSpeed(float speed) { m_speed = speed; }
 

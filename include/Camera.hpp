@@ -26,7 +26,7 @@ public:
     Camera() = default;
 
     glm::mat4 getView();
-    glm::mat4 getPerspective();
+    glm::mat4 getProjection();
 
     void setSpeed(float speed);
     void setSensitivity(float sensitivity);
