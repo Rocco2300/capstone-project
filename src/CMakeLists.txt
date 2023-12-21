@@ -7,6 +7,7 @@ add_library(src
         Shader.cpp
         Input.cpp
         Texture.cpp
+        Simulation.cpp
         )
 
 include_directories(${CMAKE_SOURCE_DIR}/include)

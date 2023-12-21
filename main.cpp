@@ -4,6 +4,7 @@
 #include "Program.hpp"
 #include "Shader.hpp"
 #include "Texture.hpp"
+#include "Simulation.hpp"
 
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
@@ -27,7 +28,7 @@ int main() {
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-    GLFWwindow* window = glfwCreateWindow(800, 800, "Capstone", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(1280, 720, "Capstone", nullptr, nullptr);
     if (!window) {
         std::cerr << "Window creation failed.\n";
         glfwTerminate();
@@ -47,42 +48,32 @@ int main() {
         return -1;
     }
 
-    Camera textureCamera;
-    textureCamera.setOrthographic(-0.5f, 0.5f, -0.5f, 0.5f);
-    textureCamera.setView({0.f, 0.f, -1.f}, {0.f, 0.f, 0.f});
-
-    Plane texturePlane;
-    texturePlane.generate(2, 2);
-    texturePlane.setOrigin({0.5f, 0.f, 0.5f});
-    texturePlane.setRotation({-90.f, 0.f, 0.f});
-
     Plane oceanPlane;
     oceanPlane.setSpacing(0.25f);
     oceanPlane.generate(512, 512);
     oceanPlane.setOrigin({oceanPlane.getSize().x / 2, 0.f, oceanPlane.getSize().y / 2});
     oceanPlane.setPosition({0.f, -2.f, 0.f});
 
-    Camera mainCamera;
-    mainCamera.setPerspective(45.f, 1.f);
-    mainCamera.setView({0.f, 0.f, -1.f}, {0.f, 0.f, 0.f});
-    mainCamera.setSpeed(3.f);
-    mainCamera.setSensitivity(100.f);
+    Camera camera;
+    camera.setPerspective(45.f, 1280.f / 720.f);
+    camera.setView({0.f, 0.f, -1.f}, {0.f, 0.f, 0.f});
+    camera.setSpeed(3.f);
+    camera.setSensitivity(100.f);
 
-    ComputeShader computeShader("../shaders/sine.comp");
-    Program computeProgram;
-    computeProgram.attachShader(computeShader);
-    computeProgram.validate();
+    Texture displacement;
+    displacement.setSize(512, 512);
+    displacement.setFormat(GL_RGBA32F, GL_RGBA, GL_FLOAT);
 
-    Texture texture;
-    texture.setSize(512, 512);
-    texture.setFormat(GL_RGBA32F, GL_RGBA, GL_FLOAT);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glBindImageTexture(0, texture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+    Texture normal;
+    normal.setSize(512, 512);
+    normal.setFormat(GL_RGBA32F, GL_RGBA, GL_FLOAT);
 
-    computeProgram.use();
-    glDispatchCompute(512, 512, 1);
-    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    SineSimulation simulation;
+    simulation.setNormal(normal);
+    simulation.setSurface(oceanPlane);
+    simulation.setDisplacement(displacement);
+    simulation.init();
+    simulation.update();
 
     VertexShader vertexShader("../shaders/ocean_surface.vert");
     FragmentShader fragmentShader("../shaders/ocean_surface.frag");
@@ -92,13 +83,18 @@ int main() {
     program.validate();
     program.use();
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glCullFace(GL_BACK);
     glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
 
-    auto mvp = mainCamera.getPerspective() * mainCamera.getView() * oceanPlane.getTransform();
-    program.setUniform("tex", 0);
-    program.setUniform("mvp", mvp);
+    glBindTexture(GL_TEXTURE_2D, displacement);
+    program.setUniform("displacement", 0);
+    glBindTexture(GL_TEXTURE_2D, normal);
+    program.setUniform("normal", 1);
+    program.setUniform("view", camera.getView());
+    program.setUniform("model", oceanPlane.getTransform());
+    program.setUniform("projection", camera.getProjection());
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -118,11 +114,10 @@ int main() {
         glfwGetFramebufferSize(window, &width, &height);
         glViewport(0, 0, width, height);
 
-        mainCamera.setPerspective(45.f, static_cast<float>(width) / height);
-        mainCamera.update(deltaTime);
+        camera.setPerspective(45.f, static_cast<float>(width) / height);
+        camera.update(deltaTime);
 
-        auto mvp = mainCamera.getPerspective() * mainCamera.getView() * oceanPlane.getTransform();
-        program.setUniform("mvp", mvp);
+        program.setUniform("view", camera.getView());
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -130,7 +125,8 @@ int main() {
 
         ImGui::Begin("Hello");
 
-        ImGui::Image(texture, {256, 256}, {0, 1}, {1, 0});
+        ImGui::Image(displacement, {256, 256}, {0, 1}, {1, 0});
+        ImGui::Image(normal, {256, 256}, {0, 1}, {1, 0});
 
         ImGui::End();
         ImGui::Render();
