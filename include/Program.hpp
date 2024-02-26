@@ -27,6 +27,8 @@ public:
     void validate();
     void attachShader(Shader& shader);
 
-    void setUniform(std::string_view name, int value);
-    void setUniform(std::string_view name, glm::mat4 value);
+    void setInt(std::string_view name, int value);
+    void setFloat(std::string_view name, float value);
+    void setDouble(std::string_view name, double value);
+    void setMatrix4(std::string_view name, glm::mat4 value);
 };

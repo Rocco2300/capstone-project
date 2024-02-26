@@ -56,6 +56,7 @@ glm::mat4 Transformable::getTransform() {
 
 void Transformable::updateTransform() {
     const auto identity = glm::mat4(1.f);
+    auto a = glm::vec4(1.f);
 
     auto yaw      = glm::eulerAngleY(glm::radians(m_rotation.y));
     auto roll     = glm::eulerAngleZ(glm::radians(m_rotation.z));

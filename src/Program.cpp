@@ -65,14 +65,28 @@ void Program::validate() {
     massert(success == true, "Error: Validation of program failed.\n");
 }
 
-void Program::setUniform(std::string_view name, int value) {
+void Program::setInt(std::string_view name, int value) {
     auto location = glGetUniformLocation(m_id, name.data());
     massert(location != -1, "Uniform {} not found in program.\n", name);
 
     glProgramUniform1i(m_id, location, value);
 }
 
-void Program::setUniform(std::string_view name, glm::mat4 value) {
+void Program::setFloat(std::string_view name, float value) {
+    auto location = glGetUniformLocation(m_id, name.data());
+    massert(location != -1, "Uniform {} not found in program.\n", name);
+
+    glProgramUniform1f(m_id, location, value);
+}
+
+void Program::setDouble(std::string_view name, double value) {
+    auto location = glGetUniformLocation(m_id, name.data());
+    massert(location != -1, "Uniform {} not found in program.\n", name);
+
+    glProgramUniform1d(m_id, location, value);
+}
+
+void Program::setMatrix4(std::string_view name, glm::mat4 value) {
     auto location = glGetUniformLocation(m_id, name.data());
     massert(location != -1, "Uniform {} not found in program.\n", name);
 

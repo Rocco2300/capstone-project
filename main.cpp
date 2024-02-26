@@ -3,8 +3,8 @@
 #include "Plane.hpp"
 #include "Program.hpp"
 #include "Shader.hpp"
-#include "Texture.hpp"
 #include "Simulation.hpp"
+#include "Texture.hpp"
 
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
@@ -13,13 +13,17 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
+#include <ctime>
 #include <iostream>
+#include <random>
 
 static void errorCallback(int error, const char* description) {
     std::cerr << "Error: " << description << '\n';
 }
 
 int main() {
+    srand(time(nullptr));
+
     if (!glfwInit()) {
         std::cerr << "GLFW initialization failed.\n";
         glfwTerminate();
@@ -28,6 +32,7 @@ int main() {
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_CONTEXT_DEBUG, GLFW_TRUE);
     GLFWwindow* window = glfwCreateWindow(1280, 720, "Capstone", nullptr, nullptr);
     if (!window) {
         std::cerr << "Window creation failed.\n";
@@ -49,10 +54,8 @@ int main() {
     }
 
     Plane oceanPlane;
-    oceanPlane.setSpacing(0.25f);
-    oceanPlane.generate(512, 512);
-    oceanPlane.setOrigin({oceanPlane.getSize().x / 2, 0.f, oceanPlane.getSize().y / 2});
-    oceanPlane.setPosition({0.f, -2.f, 0.f});
+    Texture normal(GL_RGB32F, 256, 256, GL_RGBA, GL_FLOAT);
+    Texture displacement(GL_RGB32F, 256, 256, GL_RGBA, GL_FLOAT);
 
     Camera camera;
     camera.setPerspective(45.f, 1280.f / 720.f);
@@ -60,20 +63,12 @@ int main() {
     camera.setSpeed(3.f);
     camera.setSensitivity(100.f);
 
-    Texture displacement;
-    displacement.setSize(512, 512);
-    displacement.setFormat(GL_RGBA32F, GL_RGBA, GL_FLOAT);
-
-    Texture normal;
-    normal.setSize(512, 512);
-    normal.setFormat(GL_RGBA32F, GL_RGBA, GL_FLOAT);
-
     SineSimulation simulation;
     simulation.setNormal(normal);
     simulation.setSurface(oceanPlane);
     simulation.setDisplacement(displacement);
-    simulation.init();
-    simulation.update();
+    simulation.init(256, 256);
+    simulation.generateWaves(8);
 
     VertexShader vertexShader("../shaders/ocean_surface.vert");
     FragmentShader fragmentShader("../shaders/ocean_surface.frag");
@@ -87,14 +82,15 @@ int main() {
     glCullFace(GL_BACK);
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEBUG_OUTPUT);
 
     glBindTexture(GL_TEXTURE_2D, displacement);
-    program.setUniform("displacement", 0);
+    program.setInt("displacement", 0);
     glBindTexture(GL_TEXTURE_2D, normal);
-    program.setUniform("normal", 1);
-    program.setUniform("view", camera.getView());
-    program.setUniform("model", oceanPlane.getTransform());
-    program.setUniform("projection", camera.getProjection());
+    program.setInt("normal", 1);
+    program.setMatrix4("view", camera.getView());
+    program.setMatrix4("model", oceanPlane.getTransform());
+    program.setMatrix4("projection", camera.getProjection());
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -106,6 +102,8 @@ int main() {
 
     float prev = glfwGetTime();
     while (!glfwWindowShouldClose(window)) {
+        GLenum err;
+        while ((err = glGetError()) != GL_NO_ERROR) { std::cout << err << '\n'; }
         float now       = glfwGetTime();
         float deltaTime = now - prev;
         prev            = now;
@@ -116,8 +114,9 @@ int main() {
 
         camera.setPerspective(45.f, static_cast<float>(width) / height);
         camera.update(deltaTime);
+        simulation.update(glfwGetTime());
 
-        program.setUniform("view", camera.getView());
+        program.setMatrix4("view", camera.getView());
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -134,8 +133,10 @@ int main() {
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        program.use();
         oceanPlane.bind();
         glDrawElements(GL_TRIANGLES, oceanPlane.getIndices().size(), GL_UNSIGNED_INT, 0);
+        //glDrawElementsIndirect(GL_TRIANGLES, GL_ELEMENT_ARRAY_BUFFER, )
         oceanPlane.unbind();
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
