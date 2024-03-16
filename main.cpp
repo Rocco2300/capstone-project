@@ -4,7 +4,6 @@
 #include "Program.hpp"
 #include "Shader.hpp"
 #include "Texture.hpp"
-#include "Simulation.hpp"
 
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
@@ -15,7 +14,7 @@
 
 #include <iostream>
 
-static void errorCallback(int error, const char* description) {
+static void errorCallback(int error, const char *description) {
     std::cerr << "Error: " << description << '\n';
 }
 
@@ -28,7 +27,7 @@ int main() {
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "Capstone", nullptr, nullptr);
+    GLFWwindow *window = glfwCreateWindow(1280, 720, "Capstone", nullptr, nullptr);
     if (!window) {
         std::cerr << "Window creation failed.\n";
         glfwTerminate();
@@ -68,12 +67,18 @@ int main() {
     normal.setSize(512, 512);
     normal.setFormat(GL_RGBA32F, GL_RGBA, GL_FLOAT);
 
-    SineSimulation simulation;
-    simulation.setNormal(normal);
-    simulation.setSurface(oceanPlane);
-    simulation.setDisplacement(displacement);
-    simulation.init();
-    simulation.update();
+    Program updateProgram;
+    ComputeShader computeShader("../shaders/sine.comp");
+    updateProgram.attachShader(computeShader);
+    updateProgram.validate();
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, displacement);
+    glBindImageTexture(0, displacement, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, normal);
+    glBindImageTexture(1, normal, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 
     VertexShader vertexShader("../shaders/ocean_surface.vert");
     FragmentShader fragmentShader("../shaders/ocean_surface.frag");
@@ -98,7 +103,7 @@ int main() {
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
+    ImGuiIO &io = ImGui::GetIO();
     (void) io;
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -106,9 +111,14 @@ int main() {
 
     float prev = glfwGetTime();
     while (!glfwWindowShouldClose(window)) {
-        float now       = glfwGetTime();
+        float now = glfwGetTime();
         float deltaTime = now - prev;
-        prev            = now;
+        prev = now;
+
+        updateProgram.use();
+        glDispatchCompute(512, 512, 1);
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+        program.use();
 
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
