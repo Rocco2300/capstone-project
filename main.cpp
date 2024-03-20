@@ -67,27 +67,10 @@ int main() {
     normal.setSize(512, 512);
     normal.setFormat(GL_RGBA32F, GL_RGBA, GL_FLOAT);
 
-    Texture noise;
-    noise.setSize(512, 512);
-    noise.setFormat(GL_RGBA32F, GL_RGBA, GL_FLOAT);
-
     Program updateProgram;
     ComputeShader computeShader("../shaders/sine.comp");
     updateProgram.attachShader(computeShader);
     updateProgram.validate();
-
-    Program randomProgram;
-    ComputeShader randomComputeShader("../shaders/Random.comp");
-    randomProgram.attachShader(randomComputeShader);
-    randomProgram.validate();
-
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, noise);
-    glBindImageTexture(3, noise, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
-
-    randomProgram.use();
-    glDispatchCompute(512, 512, 1);
-    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, displacement);
