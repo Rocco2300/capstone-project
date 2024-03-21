@@ -19,7 +19,7 @@ Texture::Texture(int internalFormat, int width, int height, uint32 format, uint3
 
     m_type = type;
     m_format = format;
-    m_internalFormat = format;
+    m_internalFormat = internalFormat;
 
     generateTexture();
 }
