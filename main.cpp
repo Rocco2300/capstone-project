@@ -4,6 +4,7 @@
 #include "Program.hpp"
 #include "Shader.hpp"
 #include "Texture.hpp"
+#include "Noise.hpp"
 
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
@@ -66,6 +67,12 @@ int main() {
     Texture normal;
     normal.setSize(512, 512);
     normal.setFormat(GL_RGBA32F, GL_RGBA, GL_FLOAT);
+
+    Noise noiseImage(512, 512);
+    Texture noise;
+    noise.setSize(512, 512);
+    noise.setFormat(GL_RG32F, GL_RG, GL_FLOAT);
+    noise.setData(noiseImage.data());
 
     Program updateProgram;
     ComputeShader computeShader("../shaders/sine.comp");
