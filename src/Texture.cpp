@@ -32,6 +32,11 @@ Texture::operator uint32() const { return m_id; }
 
 Texture::operator ImTextureID() const { return reinterpret_cast<ImTextureID>(m_id); }
 
+void Texture::setData(void* data) {
+    m_data = data;
+    updateImage();
+}
+
 void Texture::setWrapping(int s, int t) {
     glBindTexture(GL_TEXTURE_2D, m_id);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, s);
@@ -64,7 +69,7 @@ void Texture::setFormat(int internalFormat, uint32 format, uint32 type) {
 void Texture::updateImage() {
     glBindTexture(GL_TEXTURE_2D, m_id);
     glTexImage2D(GL_TEXTURE_2D, 0, m_internalFormat, m_width, m_height, 0, m_format, m_type,
-                 nullptr);
+                 m_data);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
@@ -77,7 +82,5 @@ void Texture::generateTexture() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, m_internalFormat, m_width, m_height, 0, m_format, m_type,
-                 nullptr);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    updateImage();
 }

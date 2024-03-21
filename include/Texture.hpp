@@ -11,6 +11,7 @@ private:
     int m_width{};
     int m_height{};
 
+    void* m_data{};
     uint32 m_type{};
     uint32 m_format{};
     int m_internalFormat{};
@@ -23,6 +24,7 @@ public:
     operator uint32() const;
     operator ImTextureID() const;
 
+    void setData(void* data);
     void setWrapping(int s, int t);
     void setFilter(int min, int mag);
     void setSize(int width, int height);
