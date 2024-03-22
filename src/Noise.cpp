@@ -31,8 +31,8 @@ void Noise::generateNoise() {
     for (int y = 0; y < m_height; y++) {
         for (int x = 0; x < m_width; x++) {
             auto idx = (y * m_width + x) * 2;
-            m_data[idx + 0] = (normalRandom() + 1.f) * 0.5f;
-            m_data[idx + 1] = (normalRandom() + 1.f) * 0.5f;
+            m_data[idx + 0] = normalRandom();
+            m_data[idx + 1] = normalRandom();
         }
     }
 }
