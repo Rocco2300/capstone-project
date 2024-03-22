@@ -15,6 +15,18 @@
 
 #include <iostream>
 
+struct Params
+{
+    float angle;
+    float depth;
+    float fetch;
+    float gamma;
+    float swell;
+    float windSpeed;
+    float spreadBlend;
+    float padding_;
+};
+
 static void errorCallback(int error, const char *description) {
     std::cerr << "Error: " << description << '\n';
 }
@@ -74,18 +86,63 @@ int main() {
     noise.setFormat(GL_RG32F, GL_RG, GL_FLOAT);
     noise.setData(noiseImage.data());
 
-    Program updateProgram;
-    ComputeShader computeShader("../shaders/sine.comp");
-    updateProgram.attachShader(computeShader);
-    updateProgram.validate();
+    Texture h0K;
+    h0K.setSize(512, 512);
+    h0K.setFormat(GL_RG32F, GL_RG, GL_FLOAT);
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, displacement);
-    glBindImageTexture(0, displacement, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+    Texture h0;
+    h0.setSize(512, 512);
+    h0.setFormat(GL_RGBA32F, GL_RGBA, GL_FLOAT);
+
+    Program spectrumProgram;
+    ComputeShader spectrumShader("../shaders/InitialSpectrum.comp");
+    spectrumProgram.attachShader(spectrumShader);
+    spectrumProgram.validate();
+    spectrumProgram.use();
 
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, normal);
-    glBindImageTexture(1, normal, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+    glBindTexture(GL_TEXTURE_2D, noise);
+    glBindImageTexture(0, noise, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RG32F);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, h0K);
+    glBindImageTexture(1, h0K, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RG32F);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, h0);
+    glBindImageTexture(2, h0, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+
+    Params params{};
+    params.angle = 172.0f;
+    params.depth = 100.0f;
+    params.fetch = 1000.0f;
+    params.gamma = 3.3f;
+    params.swell = 0.0f;
+    params.windSpeed = 10.f;
+    params.spreadBlend = 0.25f;
+
+    uint32 paramsSSBO;
+    glGenBuffers(1, &paramsSSBO);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, paramsSSBO);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(params), &params, GL_STATIC_READ);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 16, paramsSSBO);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+    glDispatchCompute(512, 512, 1);
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+    //Program updateProgram;
+    //ComputeShader computeShader("../shaders/sine.comp");
+    //updateProgram.attachShader(computeShader);
+    //updateProgram.validate();
+
+    //glActiveTexture(GL_TEXTURE0);
+    //glBindTexture(GL_TEXTURE_2D, displacement);
+    //glBindImageTexture(0, displacement, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+
+    //glActiveTexture(GL_TEXTURE1);
+    //glBindTexture(GL_TEXTURE_2D, normal);
+    //glBindImageTexture(1, normal, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 
     VertexShader vertexShader("../shaders/ocean_surface.vert");
     FragmentShader fragmentShader("../shaders/ocean_surface.frag");
@@ -122,9 +179,9 @@ int main() {
         float deltaTime = now - prev;
         prev = now;
 
-        updateProgram.use();
-        glDispatchCompute(512, 512, 1);
-        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+        //updateProgram.use();
+        //glDispatchCompute(512, 512, 1);
+        //glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
         program.use();
 
         int width, height;
@@ -140,10 +197,10 @@ int main() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::Begin("Hello");
+        ImGui::Begin("Debug");
 
-        ImGui::Image(displacement, {256, 256}, {0, 1}, {1, 0});
-        ImGui::Image(noise, {256, 256}, {0, 1}, {1, 0});
+        ImGui::Image(h0, {256, 256}, {0, 1}, {1, 0});
+        ImGui::Image(h0K, {256, 256}, {0, 1}, {1, 0});
 
         ImGui::End();
         ImGui::Render();
