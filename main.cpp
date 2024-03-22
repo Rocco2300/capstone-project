@@ -201,6 +201,7 @@ int main() {
 
         ImGui::Image(h0, {256, 256}, {0, 1}, {1, 0});
         ImGui::Image(h0K, {256, 256}, {0, 1}, {1, 0});
+        ImGui::Image(noise, {256, 256}, {0, 1}, {1, 0});
 
         ImGui::End();
         ImGui::Render();

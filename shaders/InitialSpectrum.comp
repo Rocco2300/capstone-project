@@ -5,10 +5,9 @@ layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 #define M_PI 3.1415926
 
 // TODO: don't hardcode this, quick fix for testing
-uint size = 512;
+uint size = 512u;
 
-layout(std430, binding = 16) buffer Params
-{
+layout(std430, binding = 16) buffer Params {
     float angle;
     float depth;
     float fetch;
@@ -134,8 +133,8 @@ void main() {
     int nx = int(id.x - size / 2u);
     int ny = int(id.y - size / 2u);
     vec2 k = vec2(nx, ny);
-    vec2 noise = texture(noise, id.xy);
     float kLength = length(k);
+    vec2 noiseValue = imageLoad(noise, ivec2(id.xy)).rg;
 
     float kAngle = atan(k.y, k.x);
     float omega  = dispersion(kLength);
@@ -145,9 +144,9 @@ void main() {
     float peakOmega = jonswapPeakOmega();
     float spectrum = jonswap(omega, peakOmega, alpha) * directionalSpectrum(omega, peakOmega, kAngle);
 
-    imageStore(H0K, id.xy, noise * sqrt(2 * spectrum * abs(dOmegadk) / kLength));
+    imageStore(H0K, ivec2(id.xy), vec4(noiseValue * sqrt(2 * spectrum * abs(dOmegadk) / kLength), 0.0, 0.0));
 
-    vec2 h0K = texture(H0K, id.xy);
-    vec2 h0MinusK = texture(H0K, uvec2((size - id.x) % size, (size - id.y) % size));
-    imageStore(H0, id.xy, h0K.x, h0K.y, h0MinusK.x, -h0MinusK.y);
+    vec2 h0K = imageLoad(H0K, ivec2(id.xy)).rg;
+    vec2 h0MinusK = imageLoad(H0K, ivec2((size - id.x) % size, (size - id.y) % size)).rg;
+    imageStore(H0, ivec2(id.xy), vec4(h0K.x, h0K.y, h0MinusK.x, -h0MinusK.y));
 }
