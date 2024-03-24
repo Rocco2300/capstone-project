@@ -8,6 +8,7 @@
 
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
+#include <glm/gtc/constants.hpp>
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -113,11 +114,11 @@ int main() {
     glBindImageTexture(2, h0, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 
     Params params{};
-    params.angle = 172.0f;
+    params.angle = 172.0f / 180.f * glm::pi<float>();
     params.depth = 100.0f;
     params.fetch = 1000.0f;
     params.gamma = 3.3f;
-    params.swell = 0.0f;
+    params.swell = 0.01f;
     params.windSpeed = 10.f;
     params.spreadBlend = 0.25f;
 
@@ -128,6 +129,11 @@ int main() {
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 16, paramsSSBO);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
+    spectrumProgram.setUniform("conjugate", 0);
+    glDispatchCompute(512, 512, 1);
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+    spectrumProgram.setUniform("conjugate", 1);
     glDispatchCompute(512, 512, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
