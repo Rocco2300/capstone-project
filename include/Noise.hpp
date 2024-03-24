@@ -19,6 +19,7 @@ public:
     uint16 width();
     uint16 height();
 
+    void generateNoise(uint16 width, uint16 height);
+
 private:
-    void generateNoise();
 };
