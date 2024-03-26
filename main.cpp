@@ -18,6 +18,7 @@
 
 struct Params
 {
+    float scale;
     float angle;
     float depth;
     float fetch;
@@ -25,7 +26,6 @@ struct Params
     float swell;
     float windSpeed;
     float spreadBlend;
-    float padding_;
 };
 
 static void errorCallback(int error, const char *description) {

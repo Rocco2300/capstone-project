@@ -8,6 +8,7 @@ layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 int size = 512;
 
 layout(std430, binding = 16) buffer Params {
+    float scale;
     float angle;
     float depth;
     float fetch;
@@ -126,7 +127,7 @@ float jonswap(float omega, float peakOmega, float alpha) {
     float oneOverOmega = 1 / omega;
     //imageStore(H0K, ivec2(gl_GlobalInvocationID.xy), (oneOverOmega) * vec4(1.0, 0.0, 0.0, 1.0));
     float peakOmegaOverOmega = peakOmega / omega;
-    return alpha * g * g
+    return params.scale * alpha * g * g
             * oneOverOmega * oneOverOmega * oneOverOmega * oneOverOmega * oneOverOmega
             * exp(-1.25 * peakOmegaOverOmega * peakOmegaOverOmega * peakOmegaOverOmega * peakOmegaOverOmega)
             * pow(params.gamma, r);
