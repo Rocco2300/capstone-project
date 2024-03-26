@@ -84,5 +84,14 @@ void Shader::load(const std::string& filePath) {
 
     std::stringstream ss;
     ss << in.rdbuf();
-    m_sourceCode = ss.str();
+    auto code = ss.str();
+    if (filePath.find("hpp") != std::string::npos) {
+        code.erase(0, code.find('\n') + 1);
+    }
+
+    if (m_sourceCode.empty()) {
+        m_sourceCode += "#version 460\n";
+    }
+    m_sourceCode += code;
+    m_sourceCode += '\n';
 }

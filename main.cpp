@@ -97,7 +97,9 @@ int main() {
     h0.setFormat(GL_RGBA32F, GL_RGBA, GL_FLOAT);
 
     Program spectrumProgram;
-    ComputeShader spectrumShader("../shaders/InitialSpectrum.comp");
+    ComputeShader spectrumShader;
+    spectrumShader.load("../include/Bindings.hpp");
+    spectrumShader.load("../shaders/InitialSpectrum.comp");
     spectrumProgram.attachShader(spectrumShader);
     spectrumProgram.validate();
     spectrumProgram.use();
