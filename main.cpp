@@ -5,6 +5,7 @@
 #include "Shader.hpp"
 #include "Texture.hpp"
 #include "Noise.hpp"
+#include "Bindings.hpp"
 
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
@@ -103,17 +104,18 @@ int main() {
 
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, noise);
-    glBindImageTexture(0, noise, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RG32F);
+    glBindImageTexture(NOISE_BINDING, noise, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RG32F);
 
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, h0K);
-    glBindImageTexture(1, h0K, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RG32F);
+    glBindImageTexture(H0K_BINDING, h0K, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RG32F);
 
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, h0);
-    glBindImageTexture(2, h0, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+    glBindImageTexture(H0_BINDING, h0, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 
     Params params{};
+    params.scale = 1.f;
     params.angle = 172.0f / 180.f * glm::pi<float>();
     params.depth = 100.0f;
     params.fetch = 1000.0f;
@@ -126,7 +128,7 @@ int main() {
     glGenBuffers(1, &paramsSSBO);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, paramsSSBO);
     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(params), &params, GL_STATIC_READ);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 16, paramsSSBO);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, PARAMS_BINDING, paramsSSBO);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
     spectrumProgram.setUniform("conjugate", 0);
