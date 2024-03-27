@@ -16,10 +16,10 @@ layout(std430, binding = 16) buffer Params {
     float spreadBlend;
 } params;
 
-layout(rg32f, binding = 0) uniform image2D noise;
+layout(rg32f, binding = NOISE_BINDING) uniform image2D noise;
 
-layout(rg32f, binding = 1) uniform image2D H0K;
-layout(rgba32f, binding = 2) uniform image2D H0;
+layout(rg32f, binding = H0K_BINDING) uniform image2D H0K;
+layout(rgba32f, binding = H0_BINDING) uniform image2D H0;
 
 uniform int conjugate;
 

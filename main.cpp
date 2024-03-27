@@ -104,15 +104,15 @@ int main() {
     spectrumProgram.validate();
     spectrumProgram.use();
 
-    glActiveTexture(GL_TEXTURE1);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, noise);
     glBindImageTexture(NOISE_BINDING, noise, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RG32F);
 
-    glActiveTexture(GL_TEXTURE1);
+    glActiveTexture(GL_TEXTURE0 + H0K_BINDING);
     glBindTexture(GL_TEXTURE_2D, h0K);
     glBindImageTexture(H0K_BINDING, h0K, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RG32F);
 
-    glActiveTexture(GL_TEXTURE1);
+    glActiveTexture(GL_TEXTURE0 + H0_BINDING);
     glBindTexture(GL_TEXTURE_2D, h0);
     glBindImageTexture(H0_BINDING, h0, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 
@@ -146,9 +146,13 @@ int main() {
     //updateProgram.attachShader(computeShader);
     //updateProgram.validate();
 
-    //glActiveTexture(GL_TEXTURE0);
-    //glBindTexture(GL_TEXTURE_2D, displacement);
-    //glBindImageTexture(0, displacement, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+    glActiveTexture(GL_TEXTURE0 + DISPLACEMENT_BINDING);
+    glBindTexture(GL_TEXTURE_2D, displacement);
+    glBindImageTexture(DISPLACEMENT_BINDING, displacement, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+
+    glActiveTexture(GL_TEXTURE0 + NORMAL_BINDING);
+    glBindTexture(GL_TEXTURE_2D, normal);
+    glBindImageTexture(NORMAL_BINDING, normal, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 
     //glActiveTexture(GL_TEXTURE1);
     //glBindTexture(GL_TEXTURE_2D, normal);
@@ -168,9 +172,9 @@ int main() {
     glEnable(GL_DEPTH_TEST);
 
     glBindTexture(GL_TEXTURE_2D, displacement);
-    program.setUniform("displacement", 0);
+    program.setUniform("displacement", DISPLACEMENT_BINDING);
     glBindTexture(GL_TEXTURE_2D, normal);
-    program.setUniform("normal", 1);
+    program.setUniform("normal", NORMAL_BINDING);
     program.setUniform("view", camera.getView());
     program.setUniform("model", oceanPlane.getTransform());
     program.setUniform("projection", camera.getProjection());
