@@ -87,6 +87,11 @@ void Shader::load(const std::string& filePath) {
     auto code = ss.str();
     if (filePath.find("hpp") != std::string::npos) {
         code.erase(0, code.find('\n') + 1);
+    } else {
+        auto index = code.find("#include");
+        if (index != std::string::npos) {
+            code.erase(index, code.find('\n', index) + 1);
+        }
     }
 
     if (m_sourceCode.empty()) {
