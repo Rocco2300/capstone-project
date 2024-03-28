@@ -1,0 +1,32 @@
+#include <Bindings.hpp> // only to not get complaints from clion
+
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+
+#define M_PI 3.1415926
+
+layout(rg32f, binding = DY_BINDING) uniform image2D Dy;
+layout(rgba32f, binding = DISPLACEMENT_BINDING) uniform image2D displacement;
+
+void main() {
+    ivec2 id = ivec2(gl_GlobalInvocationID.xy);
+    //imageStore(displacement, id, imageLoad(Dy, id));
+    vec2 result = vec2(0.0);
+    // TODO: don't hardcode this
+    int offset = 32;
+    int N = int(pow(offset, 2));
+    for (int y = 256 - offset; y < 256 + offset; y++) {
+        for (int x = 256 - offset; x < 256 + offset; x++) {
+            int k = y * 512 + x;
+            int n = id.y * 512 + id.x;
+            vec2 dy = imageLoad(Dy, ivec2(x, y)).rg;
+            //imageStore(displacement, ivec2(x, y), vec4(dy, 0.0, 1.0));
+            result.x += cos((2.0 * M_PI * k * n) / N) * dy.x;
+            result.y += sin((2.0 * M_PI * k * n) / N) * dy.y;
+            //imageStore(displacement, ivec2(x, y), vec4(result, 0.0, 1.0));
+        }
+    }
+    //result /= N;
+    //float h = length(result);
+    //imageStore(displacement, id, vec4(vec3(h), 1.0));
+    imageStore(displacement, id, vec4(result, 0.0, 1.0));
+}

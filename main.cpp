@@ -169,6 +169,13 @@ int main() {
     glDispatchCompute(512, 512, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
+    Program idftProgram;
+    ComputeShader idftShader;
+    idftShader.load("../include/Bindings.hpp");
+    idftShader.load("../shaders/IDFT.comp");
+    idftProgram.attachShader(idftShader);
+    idftProgram.validate();
+
     glActiveTexture(GL_TEXTURE0 + DISPLACEMENT_BINDING);
     glBindTexture(GL_TEXTURE_2D, displacement);
     glBindImageTexture(DISPLACEMENT_BINDING, displacement, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
@@ -177,9 +184,9 @@ int main() {
     glBindTexture(GL_TEXTURE_2D, normal);
     glBindImageTexture(NORMAL_BINDING, normal, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 
-    //glActiveTexture(GL_TEXTURE1);
-    //glBindTexture(GL_TEXTURE_2D, normal);
-    //glBindImageTexture(1, normal, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+    idftProgram.use();
+    glDispatchCompute(512, 512, 1);
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
     VertexShader vertexShader("../shaders/ocean_surface.vert");
     FragmentShader fragmentShader("../shaders/ocean_surface.frag");
@@ -218,6 +225,10 @@ int main() {
 
         timeDependentProgram.setUniform("time", glfwGetTime());
         timeDependentProgram.use();
+        glDispatchCompute(512, 512, 1);
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+        idftProgram.use();
         glDispatchCompute(512, 512, 1);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
