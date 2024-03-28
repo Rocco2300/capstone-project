@@ -1,0 +1,25 @@
+#include <Bindings.hpp>
+
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+
+layout(rgba32f, binding = WAVEDATA_BINDING) uniform image2D wavedata;
+
+layout(rgba32f, binding = H0_BINDING) uniform image2D H0;
+layout(rg32f, binding = DY_BINDING) uniform image2D Dy;
+
+uniform double time;
+
+vec2 complexMul(vec2 a, vec2 b) {
+    return vec2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
+}
+
+void main() {
+    ivec2 id = ivec2(gl_GlobalInvocationID.xy);
+    vec4 wave = imageLoad(wavedata, id);
+    float phase = wave.w * float(time);
+    vec2 exponent = vec2(cos(phase), sin(phase));
+    vec4 h0 = imageLoad(H0, id);
+
+    vec2 h = complexMul(h0.xy, exponent) + complexMul(h0.zw, vec2(exponent.x, -exponent.y));
+    imageStore(Dy, id, vec4(h, 0.0, 1.0));
+}

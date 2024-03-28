@@ -96,6 +96,14 @@ int main() {
     h0.setSize(512, 512);
     h0.setFormat(GL_RGBA32F, GL_RGBA, GL_FLOAT);
 
+    Texture wavedata;
+    wavedata.setSize(512, 512);
+    wavedata.setFormat(GL_RGBA32F, GL_RGBA, GL_FLOAT);
+
+    Texture dy;
+    dy.setSize(512, 512);
+    dy.setFormat(GL_RG32F, GL_RG, GL_FLOAT);
+
     Program spectrumProgram;
     ComputeShader spectrumShader;
     spectrumShader.load("../include/Bindings.hpp");
@@ -115,6 +123,14 @@ int main() {
     glActiveTexture(GL_TEXTURE0 + H0_BINDING);
     glBindTexture(GL_TEXTURE_2D, h0);
     glBindImageTexture(H0_BINDING, h0, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+
+    glActiveTexture(GL_TEXTURE0 + WAVEDATA_BINDING);
+    glBindTexture(GL_TEXTURE_2D, wavedata);
+    glBindImageTexture(WAVEDATA_BINDING, wavedata, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+
+    glActiveTexture(GL_TEXTURE0 + DY_BINDING);
+    glBindTexture(GL_TEXTURE_2D, dy);
+    glBindImageTexture(DY_BINDING, dy, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RG32F);
 
     Params params{};
     params.scale = 1.f;
@@ -141,10 +157,17 @@ int main() {
     glDispatchCompute(512, 512, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-    //Program updateProgram;
-    //ComputeShader computeShader("../shaders/sine.comp");
-    //updateProgram.attachShader(computeShader);
-    //updateProgram.validate();
+    Program timeDependentProgram;
+    ComputeShader timeDependentShader;
+    timeDependentShader.load("../include/Bindings.hpp");
+    timeDependentShader.load("../shaders/TimeDependentSpectrum.comp");
+    timeDependentProgram.attachShader(timeDependentShader);
+    timeDependentProgram.validate();
+
+    timeDependentProgram.setUniform("time", glfwGetTime());
+    timeDependentProgram.use();
+    glDispatchCompute(512, 512, 1);
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
     glActiveTexture(GL_TEXTURE0 + DISPLACEMENT_BINDING);
     glBindTexture(GL_TEXTURE_2D, displacement);
@@ -193,9 +216,11 @@ int main() {
         float deltaTime = now - prev;
         prev = now;
 
-        //updateProgram.use();
-        //glDispatchCompute(512, 512, 1);
-        //glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+        timeDependentProgram.setUniform("time", glfwGetTime());
+        timeDependentProgram.use();
+        glDispatchCompute(512, 512, 1);
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
         program.use();
 
         int width, height;
@@ -213,9 +238,12 @@ int main() {
 
         ImGui::Begin("Debug");
 
+        ImGui::Image(dy, {256, 256}, {0, 1}, {1, 0});
         ImGui::Image(h0, {256, 256}, {0, 1}, {1, 0});
         ImGui::Image(h0K, {256, 256}, {0, 1}, {1, 0});
         ImGui::Image(noise, {256, 256}, {0, 1}, {1, 0});
+        ImGui::Image(wavedata, {256, 256}, {0, 1}, {1, 0});
+        ImGui::Image(displacement, {256, 256}, {0, 1}, {1, 0});
 
         ImGui::End();
         ImGui::Render();
