@@ -1,11 +1,11 @@
 #include "Camera.hpp"
+#include "Globals.hpp"
 #include "Input.hpp"
+#include "Noise.hpp"
 #include "Plane.hpp"
 #include "Program.hpp"
 #include "Shader.hpp"
 #include "Texture.hpp"
-#include "Noise.hpp"
-#include "Bindings.hpp"
 
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
@@ -62,9 +62,11 @@ int main() {
         return -1;
     }
 
+    int size = 128;
+
     Plane oceanPlane;
     oceanPlane.setSpacing(0.25f);
-    oceanPlane.generate(512, 512);
+    oceanPlane.generate(size, size);
     oceanPlane.setOrigin({oceanPlane.getSize().x / 2, 0.f, oceanPlane.getSize().y / 2});
     oceanPlane.setPosition({0.f, -2.f, 0.f});
 
@@ -75,42 +77,53 @@ int main() {
     camera.setSensitivity(100.f);
 
     Texture displacement;
-    displacement.setSize(512, 512);
+    displacement.setSize(size, size);
     displacement.setFormat(GL_RGBA32F, GL_RGBA, GL_FLOAT);
 
     Texture normal;
-    normal.setSize(512, 512);
+    normal.setSize(size, size);
     normal.setFormat(GL_RGBA32F, GL_RGBA, GL_FLOAT);
 
-    Noise noiseImage(512, 512);
+    Noise noiseImage(size, size);
     Texture noise;
-    noise.setSize(512, 512);
+    noise.setSize(size, size);
     noise.setFormat(GL_RG32F, GL_RG, GL_FLOAT);
     noise.setData(noiseImage.data());
 
     Texture h0K;
-    h0K.setSize(512, 512);
+    h0K.setSize(size, size);
     h0K.setFormat(GL_RG32F, GL_RG, GL_FLOAT);
 
     Texture h0;
-    h0.setSize(512, 512);
+    h0.setSize(size, size);
     h0.setFormat(GL_RGBA32F, GL_RGBA, GL_FLOAT);
 
     Texture wavedata;
-    wavedata.setSize(512, 512);
+    wavedata.setSize(size, size);
     wavedata.setFormat(GL_RGBA32F, GL_RGBA, GL_FLOAT);
 
     Texture dy;
-    dy.setSize(512, 512);
+    dy.setSize(size, size);
     dy.setFormat(GL_RG32F, GL_RG, GL_FLOAT);
+
+    Params params{};
+    params.scale = 1.f;
+    params.angle = 172.0f / 180.f * glm::pi<float>();
+    params.depth = 100.0f;
+    params.fetch = 1000.0f;
+    params.gamma = 3.3f;
+    params.swell = 0.01f;
+    params.windSpeed = 10.f;
+    params.spreadBlend = 0.25f;
 
     Program spectrumProgram;
     ComputeShader spectrumShader;
-    spectrumShader.load("../include/Bindings.hpp");
+    spectrumShader.load("../include/Globals.hpp");
     spectrumShader.load("../shaders/InitialSpectrum.comp");
     spectrumProgram.attachShader(spectrumShader);
     spectrumProgram.validate();
     spectrumProgram.use();
+    spectrumProgram.setUniform("size", size);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, noise);
@@ -132,16 +145,6 @@ int main() {
     glBindTexture(GL_TEXTURE_2D, dy);
     glBindImageTexture(DY_BINDING, dy, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RG32F);
 
-    Params params{};
-    params.scale = 1.f;
-    params.angle = 172.0f / 180.f * glm::pi<float>();
-    params.depth = 100.0f;
-    params.fetch = 1000.0f;
-    params.gamma = 3.3f;
-    params.swell = 0.01f;
-    params.windSpeed = 10.f;
-    params.spreadBlend = 0.25f;
-
     uint32 paramsSSBO;
     glGenBuffers(1, &paramsSSBO);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, paramsSSBO);
@@ -150,23 +153,23 @@ int main() {
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
     spectrumProgram.setUniform("conjugate", 0);
-    glDispatchCompute(512, 512, 1);
+    glDispatchCompute(size / THREAD_NUMBER, size / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
     spectrumProgram.setUniform("conjugate", 1);
-    glDispatchCompute(512, 512, 1);
+    glDispatchCompute(size / THREAD_NUMBER, size / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
     Program timeDependentProgram;
     ComputeShader timeDependentShader;
-    timeDependentShader.load("../include/Bindings.hpp");
+    timeDependentShader.load("../include/Globals.hpp");
     timeDependentShader.load("../shaders/TimeDependentSpectrum.comp");
     timeDependentProgram.attachShader(timeDependentShader);
     timeDependentProgram.validate();
 
     timeDependentProgram.setUniform("time", glfwGetTime());
     timeDependentProgram.use();
-    glDispatchCompute(512, 512, 1);
+    glDispatchCompute(size / THREAD_NUMBER, size / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
     glActiveTexture(GL_TEXTURE0 + DISPLACEMENT_BINDING);
@@ -194,6 +197,7 @@ int main() {
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
 
+    program.setUniform("size", size);
     glBindTexture(GL_TEXTURE_2D, displacement);
     program.setUniform("displacement", DISPLACEMENT_BINDING);
     glBindTexture(GL_TEXTURE_2D, normal);
@@ -218,7 +222,7 @@ int main() {
 
         timeDependentProgram.setUniform("time", glfwGetTime());
         timeDependentProgram.use();
-        glDispatchCompute(512, 512, 1);
+        glDispatchCompute(size / THREAD_NUMBER, size / THREAD_NUMBER, 1);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
         program.use();
