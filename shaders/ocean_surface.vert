@@ -1,6 +1,8 @@
 layout (location = 0) in vec4 position;
 layout (location = 1) in vec2 texCoord;
 
+uniform int size;
+
 uniform mat4 view;
 uniform mat4 model;
 uniform mat4 projection;
@@ -11,7 +13,7 @@ uniform sampler2D displacement;
 out vec4 outColor;
 
 void main() {
-    vec2 coords = position.xz / (512.0 * 0.25);
+    vec2 coords = position.xz / (size * 0.25);
     vec4 height = texture(displacement, coords);
     vec4 finalPos = position;
     finalPos.y = height.x;

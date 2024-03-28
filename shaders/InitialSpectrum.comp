@@ -1,11 +1,8 @@
 #include <Bindings.hpp> // only to not get complaints from clion
 
-layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+layout(local_size_x = THREAD_NUMBER, local_size_y = THREAD_NUMBER, local_size_z = 1) in;
 
 #define M_PI 3.1415926
-
-// TODO: don't hardcode this, quick fix for testing
-int size = 512;
 
 layout(std430, binding = PARAMS_BINDING) buffer Params {
     float scale;
@@ -24,6 +21,7 @@ layout(rg32f, binding = H0K_BINDING) uniform image2D H0K;
 layout(rgba32f, binding = H0_BINDING) uniform image2D H0;
 layout(rgba32f, binding = WAVEDATA_BINDING) uniform image2D wavedata;
 
+uniform int size;
 uniform int conjugate;
 
 // Horvath, C. J. (2015), 3. Nomenclature
@@ -134,7 +132,7 @@ void main() {
     uvec3 id = gl_GlobalInvocationID;
 
     if (conjugate == 0) {
-        float deltaK = 2 * M_PI / 1000.0;
+        float deltaK = 2 * M_PI / 500.0;
         int nx = int(id.x - size / 2);
         int ny = int(id.y - size / 2);
         vec2 k = vec2(nx, ny) * deltaK;
