@@ -7,7 +7,7 @@ layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 // TODO: don't hardcode this, quick fix for testing
 int size = 512;
 
-layout(std430, binding = 16) buffer Params {
+layout(std430, binding = PARAMS_BINDING) buffer Params {
     float scale;
     float angle;
     float depth;
@@ -22,6 +22,7 @@ layout(rg32f, binding = NOISE_BINDING) uniform image2D noise;
 
 layout(rg32f, binding = H0K_BINDING) uniform image2D H0K;
 layout(rgba32f, binding = H0_BINDING) uniform image2D H0;
+layout(rgba32f, binding = WAVEDATA_BINDING) uniform image2D wavedata;
 
 uniform int conjugate;
 
@@ -34,8 +35,6 @@ const float sigmaOverRo = 0.074 / 1000;
 
 // Horvath, C. J. (2015), eq. 9
 float dispersion(float k) {
-    // TODO: find out if tanh needs a min
-    //return sqrt(g * k * tanh(k * params.depth));
     return sqrt((g * k + sigmaOverRo * k * k * k) * tanh(min(k * params.depth, 10)));
 }
 
@@ -113,7 +112,6 @@ float jonswap(float omega, float peakOmega, float alpha) {
     float r = exp(-(omega - peakOmega) * (omega - peakOmega)
                   / 2 / sigma / sigma / peakOmega / peakOmega);
     float oneOverOmega = 1 / omega;
-    //imageStore(H0K, ivec2(gl_GlobalInvocationID.xy), (oneOverOmega) * vec4(1.0, 0.0, 0.0, 1.0));
     float peakOmegaOverOmega = peakOmega / omega;
     return params.scale * alpha * g * g
             * oneOverOmega * oneOverOmega * oneOverOmega * oneOverOmega * oneOverOmega
@@ -135,25 +133,23 @@ float tmaCorrection(float omega) {
 void main() {
     uvec3 id = gl_GlobalInvocationID;
 
-    float deltaK = 2 * M_PI / 1000.0;
-    int nx = int(id.x - size / 2);
-    int ny = int(id.y - size / 2);
-    vec2 k = vec2(nx, ny) * deltaK;
-    //imageStore(H0K, ivec2(gl_GlobalInvocationID.xy), vec4(k, 0.0, 1.0));
-    float kLength = length(k);
-    vec2 noiseValue = imageLoad(noise, ivec2(id.xy)).rg;
-    //imageStore(H0K, ivec2(gl_GlobalInvocationID.xy), (kLength / 256.0) * vec4(noiseValue, 0.0, 1.0));
-
-    float kAngle = atan(k.y, k.x);
-    float omega  = dispersion(kLength);
-    //imageStore(H0K, ivec2(gl_GlobalInvocationID.xy), (1 / omega) * vec4(1.0, 0.0, 0.0, 1.0));
-    float dOmegadk = dispersionDerivative(kLength);
-
-    float alpha = jonswapAlpha();
-    float peakOmega = jonswapPeakOmega();
-    float spectrum = jonswap(omega, peakOmega, alpha) * tmaCorrection(omega) * directionalSpectrum(omega, peakOmega, kAngle);
-
     if (conjugate == 0) {
+        float deltaK = 2 * M_PI / 1000.0;
+        int nx = int(id.x - size / 2);
+        int ny = int(id.y - size / 2);
+        vec2 k = vec2(nx, ny) * deltaK;
+        float kLength = length(k);
+        vec2 noiseValue = imageLoad(noise, ivec2(id.xy)).rg;
+
+        float kAngle = atan(k.y, k.x);
+        float omega  = dispersion(kLength);
+        float dOmegadk = dispersionDerivative(kLength);
+
+        float alpha = jonswapAlpha();
+        float peakOmega = jonswapPeakOmega();
+        float spectrum = jonswap(omega, peakOmega, alpha) * tmaCorrection(omega) * directionalSpectrum(omega, peakOmega, kAngle);
+
+        imageStore(wavedata, ivec2(id.xy), vec4(k.x, 1 / kLength, k.y, omega));
         imageStore(H0K, ivec2(id.xy), vec4(noiseValue * sqrt(2 * spectrum * dOmegadk / kLength), 0.0, 1.0));
     } else {
         vec2 h0K = imageLoad(H0K, ivec2(id.xy)).rg;
