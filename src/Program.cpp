@@ -72,6 +72,13 @@ void Program::setUniform(std::string_view name, int value) {
     glProgramUniform1i(m_id, location, value);
 }
 
+void Program::setUniform(std::string_view name, double value) {
+    auto location = glGetUniformLocation(m_id, name.data());
+    massert(location != -1, "Uniform {} not found in program.\n", name);
+
+    glProgramUniform1d(m_id, location, value);
+}
+
 void Program::setUniform(std::string_view name, glm::mat4 value) {
     auto location = glGetUniformLocation(m_id, name.data());
     massert(location != -1, "Uniform {} not found in program.\n", name);

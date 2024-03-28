@@ -28,5 +28,6 @@ public:
     void attachShader(Shader& shader);
 
     void setUniform(std::string_view name, int value);
+    void setUniform(std::string_view name, double value);
     void setUniform(std::string_view name, glm::mat4 value);
 };
