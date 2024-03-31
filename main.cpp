@@ -5,7 +5,7 @@
 #include "Plane.hpp"
 #include "Program.hpp"
 #include "Shader.hpp"
-#include "Texture.hpp"
+#include "TextureManager.hpp"
 
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
@@ -76,39 +76,16 @@ int main() {
     camera.setSpeed(3.f);
     camera.setSensitivity(100.f);
 
-    Texture displacement;
-    displacement.setSize(size, size);
-    displacement.setFormat(GL_RGBA32F, GL_RGBA, GL_FLOAT);
-
-    Texture normal;
-    normal.setSize(size, size);
-    normal.setFormat(GL_RGBA32F, GL_RGBA, GL_FLOAT);
-
-    Noise noiseImage(size, size);
-    Texture noise;
-    noise.setSize(size, size);
-    noise.setFormat(GL_RG32F, GL_RG, GL_FLOAT);
-    noise.setData(noiseImage.data());
-
-    Texture h0K;
-    h0K.setSize(size, size);
-    h0K.setFormat(GL_RG32F, GL_RG, GL_FLOAT);
-
-    Texture h0;
-    h0.setSize(size, size);
-    h0.setFormat(GL_RGBA32F, GL_RGBA, GL_FLOAT);
-
-    Texture temp;
-    temp.setSize(size, size);
-    temp.setFormat(GL_RGBA32F, GL_RGBA, GL_FLOAT);
-
-    Texture wavedata;
-    wavedata.setSize(size, size);
-    wavedata.setFormat(GL_RGBA32F, GL_RGBA, GL_FLOAT);
-
-    Texture dy;
-    dy.setSize(size, size);
-    dy.setFormat(GL_RG32F, GL_RG, GL_FLOAT);
+    TextureManager textureManager;
+    Noise noise(size, size);
+    textureManager.insert("noise", size, NOISE_BINDING, true).setData(noise.data());
+    textureManager.insert("normal", size, NORMAL_BINDING);
+    textureManager.insert("displacement", size, DISPLACEMENT_BINDING);
+    textureManager.insert("H0K", size, H0K_BINDING, true);
+    textureManager.insert("H0", size, H0_BINDING);
+    textureManager.insert("buffer", size, BUFFER_BINDING, true);
+    textureManager.insert("wavedata", size, WAVEDATA_BINDING);
+    textureManager.insert("dy", size, DY_BINDING, true);
 
     Params params{};
     params.scale = 1.0f;
@@ -128,26 +105,6 @@ int main() {
     spectrumProgram.validate();
     spectrumProgram.use();
     spectrumProgram.setUniform("size", size);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, noise);
-    glBindImageTexture(NOISE_BINDING, noise, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RG32F);
-
-    glActiveTexture(GL_TEXTURE0 + H0K_BINDING);
-    glBindTexture(GL_TEXTURE_2D, h0K);
-    glBindImageTexture(H0K_BINDING, h0K, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RG32F);
-
-    glActiveTexture(GL_TEXTURE0 + H0_BINDING);
-    glBindTexture(GL_TEXTURE_2D, h0);
-    glBindImageTexture(H0_BINDING, h0, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
-
-    glActiveTexture(GL_TEXTURE0 + WAVEDATA_BINDING);
-    glBindTexture(GL_TEXTURE_2D, wavedata);
-    glBindImageTexture(WAVEDATA_BINDING, wavedata, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
-
-    glActiveTexture(GL_TEXTURE0 + DY_BINDING);
-    glBindTexture(GL_TEXTURE_2D, dy);
-    glBindImageTexture(DY_BINDING, dy, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RG32F);
 
     uint32 paramsSSBO;
     glGenBuffers(1, &paramsSSBO);
@@ -184,18 +141,6 @@ int main() {
     idftProgram.validate();
     idftProgram.setUniform("size", size);
 
-    glActiveTexture(GL_TEXTURE0 + DISPLACEMENT_BINDING);
-    glBindTexture(GL_TEXTURE_2D, displacement);
-    glBindImageTexture(DISPLACEMENT_BINDING, displacement, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
-
-    glActiveTexture(GL_TEXTURE0 + NORMAL_BINDING);
-    glBindTexture(GL_TEXTURE_2D, normal);
-    glBindImageTexture(NORMAL_BINDING, normal, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
-
-    glActiveTexture(GL_TEXTURE0 + 7);
-    glBindTexture(GL_TEXTURE_2D, temp);
-    glBindImageTexture(7, temp, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
-
     idftProgram.use();
     idftProgram.setUniform("horizontalPass", 1);
     glDispatchCompute(size / THREAD_NUMBER, size / THREAD_NUMBER, 1);
@@ -219,9 +164,9 @@ int main() {
     glEnable(GL_DEPTH_TEST);
 
     program.setUniform("size", size);
-    glBindTexture(GL_TEXTURE_2D, displacement);
+    glBindTexture(GL_TEXTURE_2D, textureManager.get("displacement"));
     program.setUniform("displacement", DISPLACEMENT_BINDING);
-    glBindTexture(GL_TEXTURE_2D, normal);
+    glBindTexture(GL_TEXTURE_2D, textureManager.get("normal"));
     program.setUniform("normal", NORMAL_BINDING);
     program.setUniform("view", camera.getView());
     program.setUniform("model", oceanPlane.getTransform());
@@ -272,13 +217,9 @@ int main() {
 
         ImGui::Begin("Debug");
 
-        ImGui::Image(displacement, {256, 256}, {0, 1}, {1, 0});
-        ImGui::Image(temp, {256, 256}, {0, 1}, {1, 0});
-        ImGui::Image(dy, {256, 256}, {0, 1}, {1, 0});
-        ImGui::Image(h0, {256, 256}, {0, 1}, {1, 0});
-        ImGui::Image(h0K, {256, 256}, {0, 1}, {1, 0});
-        ImGui::Image(noise, {256, 256}, {0, 1}, {1, 0});
-        ImGui::Image(wavedata, {256, 256}, {0, 1}, {1, 0});
+        ImGui::Image(textureManager.get("displacement"), {256, 256}, {0, 1}, {1, 0});
+        ImGui::Image(textureManager.get("buffer"), {256, 256}, {0, 1}, {1, 0});
+        ImGui::Image(textureManager.get("dy"), {256, 256}, {0, 1}, {1, 0});
 
         ImGui::End();
         ImGui::Render();

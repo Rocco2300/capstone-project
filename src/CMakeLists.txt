@@ -8,6 +8,7 @@ add_library(src
         Input.cpp
         Texture.cpp
         Noise.cpp
+        TextureManager.cpp
 )
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
