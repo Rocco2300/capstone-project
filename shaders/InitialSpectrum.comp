@@ -84,7 +84,7 @@ float cosine2s(float theta, float s) {
 float directionalSpectrum(float omega, float peakOmega, float theta) {
     float s = hasslemann(omega, peakOmega) + swell(omega, peakOmega, theta);
     return mix(2 / 3.1415 * cos(theta) * cos(theta),
-               cosine2s(theta, s),
+               cosine2s(theta - params.angle, s),
                params.spreadBlend);
 }
 
@@ -132,10 +132,11 @@ void main() {
     uvec3 id = gl_GlobalInvocationID;
 
     if (conjugate == 0) {
-        float deltaK = 2 * M_PI / 500.0;
+        float deltaK = 2 * M_PI / 250.0;
         int nx = int(id.x - size / 2);
         int ny = int(id.y - size / 2);
         vec2 k = vec2(nx, ny) * deltaK;
+        k += 0.00001;
         float kLength = length(k);
         vec2 noiseValue = imageLoad(noise, ivec2(id.xy)).rg;
 
