@@ -2,6 +2,8 @@
 
 #include "GL/gl3w.h"
 
+#include <iostream>
+
 Texture::Texture() {
     m_width  = 1024;
     m_height = 1024;
@@ -26,6 +28,7 @@ Texture::Texture(int internalFormat, int width, int height, uint32 format, uint3
 
 Texture::~Texture() {
     glDeleteTextures(1, &m_id);
+    std::cout << "Here\n";
 }
 
 Texture::operator uint32() const { return m_id; }

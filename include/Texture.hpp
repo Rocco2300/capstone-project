@@ -21,6 +21,9 @@ public:
     Texture(int internalFormat, int width, int height, uint32 format, uint32 type);
     ~Texture();
 
+    Texture(const Texture&) = delete;
+    Texture& operator=(const Texture&) = delete;
+
     operator uint32() const;
     operator ImTextureID() const;
 
