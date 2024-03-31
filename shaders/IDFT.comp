@@ -9,6 +9,7 @@ layout(rgba32f, binding = DISPLACEMENT_BINDING) uniform image2D displacement;
 layout(rgba32f, binding = 7) uniform image2D temp;
 
 uniform int size;
+uniform int horizontalPass;
 
 vec2 complexMul(vec2 a, vec2 b) {
     return vec2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
@@ -16,36 +17,29 @@ vec2 complexMul(vec2 a, vec2 b) {
 
 void main() {
     ivec2 id = ivec2(gl_GlobalInvocationID.xy);
-    int N = int(pow(size, 2));
-    int n = id.y * size + id.x;
 
     vec2 result = vec2(0.0);
-    //for (int y = 0; y < size; y++) {
-    //    for (int x = 0; x < size; x++) {
-    //        int k = y * size + x;
-    //        //float phase = (2.0 * M_PI * k * n) / N;
-    //        float phase = (2.0 * M_PI * k * n) / N;
-    //        vec2 dy = imageLoad(Dy, ivec2(x, y)).rg;
-    //        vec2 exponent = vec2(cos(phase), sin(phase));
-    //        result = complexMul(dy, exponent);
-    //        //result = dy;
-    //        imageStore(temp, id, vec4(dy, 0.0, 1.0));
-    //    }
-    //}
+    if (horizontalPass == 1) {
+        for (int x = 0; x < size; x++) {
+            float phase = 2.0 * M_PI * x * id.x / size;
+            vec2 dy = imageLoad(Dy, ivec2(x, id.y)).rg;
+            vec2 exponent = vec2(cos(phase), sin(phase));
+            result += complexMul(dy, exponent);
+        }
+        imageStore(temp, id, vec4(result, 0.0, 1.0));
+    } else {
+        for (int y = 0; y < size; y++) {
+            float phase = 2.0 * M_PI * y * id.y / size;
+            vec2 t = imageLoad(temp, ivec2(id.x, y)).rg;
+            vec2 exponent = vec2(cos(phase), sin(phase));
+            result += complexMul(t, exponent);
+        }
 
-    int x = 64;
-    int y = 32;
-    float phaseX = 2.0 * M_PI * x / N * id.x;
-    float phaseY = 2.0 * M_PI * y / N * id.y;
-    vec2 dy = imageLoad(Dy, ivec2(x, y)).rg;
-    vec2 exponentX = vec2(cos(phaseX), sin(phaseX));
-    vec2 exponentY = vec2(cos(phaseY), sin(phaseY));
-    vec2 temp = complexMul(dy, exponentY);
-    result = complexMul(temp, exponentX);
+        float perms[] = {1.0, -1.0};
+        int index = int(mod(int(id.x + id.y), 2));
+        float perm = perms[index];
+        float h = perm * (result.x / float(size * size));
 
-    //result /= N;
-    float h = length(result);
-    imageStore(displacement, id, vec4(vec3(h), 1.0));
-    //imageStore(displacement, id, vec4(result, 0.0, 1.0));
-    //imageStore(displacement, id, vec4(vec3(res), 1.0));
+        imageStore(displacement, id, vec4(vec3(h), 1.0));
+    }
 }

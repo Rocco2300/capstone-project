@@ -98,6 +98,10 @@ int main() {
     h0.setSize(size, size);
     h0.setFormat(GL_RGBA32F, GL_RGBA, GL_FLOAT);
 
+    Texture temp;
+    temp.setSize(size, size);
+    temp.setFormat(GL_RGBA32F, GL_RGBA, GL_FLOAT);
+
     Texture wavedata;
     wavedata.setSize(size, size);
     wavedata.setFormat(GL_RGBA32F, GL_RGBA, GL_FLOAT);
@@ -107,13 +111,13 @@ int main() {
     dy.setFormat(GL_RG32F, GL_RG, GL_FLOAT);
 
     Params params{};
-    params.scale = 1.f;
+    params.scale = 1.0f;
     params.angle = 172.0f / 180.f * glm::pi<float>();
-    params.depth = 100.0f;
-    params.fetch = 1000.0f;
+    params.depth = 1000.0f;
+    params.fetch = 8000.0f;
     params.gamma = 3.3f;
     params.swell = 0.01f;
-    params.windSpeed = 10.f;
+    params.windSpeed = 75.f;
     params.spreadBlend = 0.25f;
 
     Program spectrumProgram;
@@ -174,10 +178,11 @@ int main() {
 
     Program idftProgram;
     ComputeShader idftShader;
-    idftShader.load("../include/Bindings.hpp");
+    idftShader.load("../include/Globals.hpp");
     idftShader.load("../shaders/IDFT.comp");
     idftProgram.attachShader(idftShader);
     idftProgram.validate();
+    idftProgram.setUniform("size", size);
 
     glActiveTexture(GL_TEXTURE0 + DISPLACEMENT_BINDING);
     glBindTexture(GL_TEXTURE_2D, displacement);
@@ -187,8 +192,17 @@ int main() {
     glBindTexture(GL_TEXTURE_2D, normal);
     glBindImageTexture(NORMAL_BINDING, normal, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 
+    glActiveTexture(GL_TEXTURE0 + 7);
+    glBindTexture(GL_TEXTURE_2D, temp);
+    glBindImageTexture(7, temp, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+
     idftProgram.use();
-    glDispatchCompute(512, 512, 1);
+    idftProgram.setUniform("horizontalPass", 1);
+    glDispatchCompute(size / THREAD_NUMBER, size / THREAD_NUMBER, 1);
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+    idftProgram.setUniform("horizontalPass", 0);
+    glDispatchCompute(size / THREAD_NUMBER, size / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
     VertexShader vertexShader("../shaders/ocean_surface.vert");
@@ -233,7 +247,12 @@ int main() {
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
         idftProgram.use();
-        glDispatchCompute(512, 512, 1);
+        idftProgram.setUniform("horizontalPass", 1);
+        glDispatchCompute(size / THREAD_NUMBER, size / THREAD_NUMBER, 1);
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+        idftProgram.setUniform("horizontalPass", 0);
+        glDispatchCompute(size / THREAD_NUMBER, size / THREAD_NUMBER, 1);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
         program.use();
@@ -253,12 +272,13 @@ int main() {
 
         ImGui::Begin("Debug");
 
+        ImGui::Image(displacement, {256, 256}, {0, 1}, {1, 0});
+        ImGui::Image(temp, {256, 256}, {0, 1}, {1, 0});
         ImGui::Image(dy, {256, 256}, {0, 1}, {1, 0});
         ImGui::Image(h0, {256, 256}, {0, 1}, {1, 0});
         ImGui::Image(h0K, {256, 256}, {0, 1}, {1, 0});
         ImGui::Image(noise, {256, 256}, {0, 1}, {1, 0});
         ImGui::Image(wavedata, {256, 256}, {0, 1}, {1, 0});
-        ImGui::Image(displacement, {256, 256}, {0, 1}, {1, 0});
 
         ImGui::End();
         ImGui::Render();
