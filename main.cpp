@@ -6,6 +6,7 @@
 #include "Program.hpp"
 #include "Shader.hpp"
 #include "TextureManager.hpp"
+#include "DFT.hpp"
 
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
@@ -133,31 +134,8 @@ int main() {
     glDispatchCompute(size / THREAD_NUMBER, size / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-    Program idftHorizontal;
-    ComputeShader idftHShader;
-    idftHShader.load("../include/Globals.hpp");
-    idftHShader.load("../shaders/IDFT_horizontal.comp");
-    idftHorizontal.attachShader(idftHShader);
-    idftHorizontal.validate();
-    idftHorizontal.setUniform("size", size);
-
-    Program idftVertical;
-    ComputeShader idftVShader;
-    idftVShader.load("../include/Globals.hpp");
-    idftVShader.load("../shaders/IDFT_vertical.comp");
-    idftVertical.attachShader(idftVShader);
-    idftVertical.validate();
-    idftVertical.setUniform("size", size);
-    idftVertical.setUniform("scale", 1);
-    idftVertical.setUniform("permute", 1);
-
-    idftHorizontal.use();
-    glDispatchCompute(size / THREAD_NUMBER, size / THREAD_NUMBER, 1);
-    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-
-    idftVertical.use();
-    glDispatchCompute(size / THREAD_NUMBER, size / THREAD_NUMBER, 1);
-    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    DFT dft(size);
+    dft.dispatchIDFT();
 
     VertexShader vertexShader("../shaders/ocean_surface.vert");
     FragmentShader fragmentShader("../shaders/ocean_surface.frag");
@@ -200,16 +178,9 @@ int main() {
         glDispatchCompute(size / THREAD_NUMBER, size / THREAD_NUMBER, 1);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-        idftHorizontal.use();
-        glDispatchCompute(size / THREAD_NUMBER, size / THREAD_NUMBER, 1);
-        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-
-        idftVertical.use();
-        glDispatchCompute(size / THREAD_NUMBER, size / THREAD_NUMBER, 1);
-        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+        dft.dispatchIDFT();
 
         program.use();
-
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
         glViewport(0, 0, width, height);
