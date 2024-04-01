@@ -28,7 +28,6 @@ Texture::Texture(int internalFormat, int width, int height, uint32 format, uint3
 
 Texture::~Texture() {
     glDeleteTextures(1, &m_id);
-    std::cout << "Here\n";
 }
 
 Texture::operator uint32() const { return m_id; }

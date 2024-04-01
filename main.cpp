@@ -133,20 +133,29 @@ int main() {
     glDispatchCompute(size / THREAD_NUMBER, size / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-    Program idftProgram;
-    ComputeShader idftShader;
-    idftShader.load("../include/Globals.hpp");
-    idftShader.load("../shaders/IDFT.comp");
-    idftProgram.attachShader(idftShader);
-    idftProgram.validate();
-    idftProgram.setUniform("size", size);
+    Program idftHorizontal;
+    ComputeShader idftHShader;
+    idftHShader.load("../include/Globals.hpp");
+    idftHShader.load("../shaders/IDFT_horizontal.comp");
+    idftHorizontal.attachShader(idftHShader);
+    idftHorizontal.validate();
+    idftHorizontal.setUniform("size", size);
 
-    idftProgram.use();
-    idftProgram.setUniform("horizontalPass", 1);
+    Program idftVertical;
+    ComputeShader idftVShader;
+    idftVShader.load("../include/Globals.hpp");
+    idftVShader.load("../shaders/IDFT_vertical.comp");
+    idftVertical.attachShader(idftVShader);
+    idftVertical.validate();
+    idftVertical.setUniform("size", size);
+    idftVertical.setUniform("scale", 1);
+    idftVertical.setUniform("permute", 1);
+
+    idftHorizontal.use();
     glDispatchCompute(size / THREAD_NUMBER, size / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-    idftProgram.setUniform("horizontalPass", 0);
+    idftVertical.use();
     glDispatchCompute(size / THREAD_NUMBER, size / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
@@ -191,12 +200,11 @@ int main() {
         glDispatchCompute(size / THREAD_NUMBER, size / THREAD_NUMBER, 1);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-        idftProgram.use();
-        idftProgram.setUniform("horizontalPass", 1);
+        idftHorizontal.use();
         glDispatchCompute(size / THREAD_NUMBER, size / THREAD_NUMBER, 1);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-        idftProgram.setUniform("horizontalPass", 0);
+        idftVertical.use();
         glDispatchCompute(size / THREAD_NUMBER, size / THREAD_NUMBER, 1);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 

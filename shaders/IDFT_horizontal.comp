@@ -1,0 +1,28 @@
+#include <Bindings.hpp> // only to not get complaints from clion
+
+layout(local_size_x = THREAD_NUMBER, local_size_y = THREAD_NUMBER, local_size_z = 1) in;
+
+#define M_PI 3.1415926
+
+layout(rg32f, binding = DY_BINDING) uniform image2D Dy;
+layout(rgba32f, binding = DISPLACEMENT_BINDING) uniform image2D displacement;
+layout(rgba32f, binding = BUFFER_BINDING) uniform image2D buff;
+
+uniform int size;
+
+vec2 complexMul(vec2 a, vec2 b) {
+    return vec2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
+}
+
+void main() {
+    ivec2 id = ivec2(gl_GlobalInvocationID.xy);
+
+    vec2 result = vec2(0.0);
+    for (int x = 0; x < size; x++) {
+        float phase = 2.0 * M_PI * x * id.x / size;
+        vec2 value = imageLoad(Dy, ivec2(x, id.y)).rg;
+        vec2 exponent = vec2(cos(phase), sin(phase));
+        result += complexMul(value, exponent);
+    }
+    imageStore(buff, id, vec4(result, 0.0, 1.0));
+}
