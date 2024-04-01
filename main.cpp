@@ -135,7 +135,7 @@ int main() {
         glfwGetFramebufferSize(window, &width, &height);
         glViewport(0, 0, width, height);
 
-        camera.setPerspective(45.f, static_cast<float>(width) / height);
+        camera.setPerspective(45.f, static_cast<float>(width) / glm::max(1, height));
         camera.update(deltaTime);
 
         program.setUniform("view", camera.getView());
