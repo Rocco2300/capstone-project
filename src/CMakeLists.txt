@@ -10,6 +10,7 @@ add_library(src
         Noise.cpp
         TextureManager.cpp
         DFT.cpp
+        Spectrum.cpp
 )
 
 include_directories(${CMAKE_SOURCE_DIR}/include)

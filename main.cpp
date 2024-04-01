@@ -7,6 +7,7 @@
 #include "Shader.hpp"
 #include "TextureManager.hpp"
 #include "DFT.hpp"
+#include "Spectrum.hpp"
 
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
@@ -17,18 +18,6 @@
 #include <imgui_impl_opengl3.h>
 
 #include <iostream>
-
-struct Params
-{
-    float scale;
-    float angle;
-    float depth;
-    float fetch;
-    float gamma;
-    float swell;
-    float windSpeed;
-    float spreadBlend;
-};
 
 static void errorCallback(int error, const char *description) {
     std::cerr << "Error: " << description << '\n';
@@ -88,7 +77,7 @@ int main() {
     textureManager.insert("wavedata", size, WAVEDATA_BINDING);
     textureManager.insert("dy", size, DY_BINDING, true);
 
-    Params params{};
+    SpectrumParameters params{};
     params.scale = 1.0f;
     params.angle = 172.0f / 180.f * glm::pi<float>();
     params.depth = 1000.0f;
@@ -98,44 +87,9 @@ int main() {
     params.windSpeed = 75.f;
     params.spreadBlend = 0.25f;
 
-    Program spectrumProgram;
-    ComputeShader spectrumShader;
-    spectrumShader.load("../include/Globals.hpp");
-    spectrumShader.load("../shaders/InitialSpectrum.comp");
-    spectrumProgram.attachShader(spectrumShader);
-    spectrumProgram.validate();
-    spectrumProgram.use();
-    spectrumProgram.setUniform("size", size);
-
-    uint32 paramsSSBO;
-    glGenBuffers(1, &paramsSSBO);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, paramsSSBO);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(params), &params, GL_STATIC_READ);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, PARAMS_BINDING, paramsSSBO);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-
-    spectrumProgram.setUniform("conjugate", 0);
-    glDispatchCompute(size / THREAD_NUMBER, size / THREAD_NUMBER, 1);
-    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-
-    spectrumProgram.setUniform("conjugate", 1);
-    glDispatchCompute(size / THREAD_NUMBER, size / THREAD_NUMBER, 1);
-    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-
-    Program timeDependentProgram;
-    ComputeShader timeDependentShader;
-    timeDependentShader.load("../include/Globals.hpp");
-    timeDependentShader.load("../shaders/TimeDependentSpectrum.comp");
-    timeDependentProgram.attachShader(timeDependentShader);
-    timeDependentProgram.validate();
-
-    timeDependentProgram.setUniform("time", glfwGetTime());
-    timeDependentProgram.use();
-    glDispatchCompute(size / THREAD_NUMBER, size / THREAD_NUMBER, 1);
-    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-
     DFT dft(size);
-    dft.dispatchIDFT();
+    Spectrum spectrum(size, params);
+    spectrum.initialize();
 
     VertexShader vertexShader("../shaders/ocean_surface.vert");
     FragmentShader fragmentShader("../shaders/ocean_surface.frag");
@@ -173,11 +127,7 @@ int main() {
         float deltaTime = now - prev;
         prev = now;
 
-        timeDependentProgram.setUniform("time", glfwGetTime());
-        timeDependentProgram.use();
-        glDispatchCompute(size / THREAD_NUMBER, size / THREAD_NUMBER, 1);
-        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-
+        spectrum.update(now);
         dft.dispatchIDFT();
 
         program.use();
