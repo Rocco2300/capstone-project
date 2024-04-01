@@ -10,7 +10,7 @@ layout(std430, binding = PARAMS_BINDING) buffer Params {
     float depth;
     float fetch;
     float gamma;
-    float swell;
+    float patchSize;
     float windSpeed;
     float spreadBlend;
 } params;
@@ -70,11 +70,6 @@ float hasslemann(float omega, float peakOmega) {
     }
 }
 
-// Horvath, C. J. (2015), eq. 45
-float swell(float omega, float peakOmega, float theta) {
-    return 16 * tanh(min(peakOmega / omega, 10)) * params.swell * params.swell;
-}
-
 // Horvath, C. J. (2015), eq. 33
 float cosine2s(float theta, float s) {
     return normalisationFactor(s) * pow(abs(cos(theta * 0.5)), 2 * s);
@@ -82,7 +77,7 @@ float cosine2s(float theta, float s) {
 
 // Horvath, C. J. (2015), eq. 42
 float directionalSpectrum(float omega, float peakOmega, float theta) {
-    float s = hasslemann(omega, peakOmega) + swell(omega, peakOmega, theta);
+    float s = hasslemann(omega, peakOmega);
     return mix(2 / 3.1415 * cos(theta) * cos(theta),
                cosine2s(theta - params.angle, s),
                params.spreadBlend);
@@ -132,7 +127,7 @@ void main() {
     uvec3 id = gl_GlobalInvocationID;
 
     if (conjugate == 0) {
-        float deltaK = 2 * M_PI / 250.0;
+        float deltaK = 2 * M_PI / params.patchSize;
         int nx = int(id.x - size / 2);
         int ny = int(id.y - size / 2);
         vec2 k = vec2(nx, ny) * deltaK;

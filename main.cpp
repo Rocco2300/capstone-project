@@ -83,7 +83,7 @@ int main() {
     params.depth = 1000.0f;
     params.fetch = 8000.0f;
     params.gamma = 3.3f;
-    params.swell = 0.01f;
+    params.patchSize = 250.f;
     params.windSpeed = 75.f;
     params.spreadBlend = 0.25f;
 

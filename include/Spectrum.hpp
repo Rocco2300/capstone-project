@@ -9,7 +9,7 @@ struct SpectrumParameters
     float depth;
     float fetch;
     float gamma;
-    float swell;
+    float patchSize;
     float windSpeed;
     float spreadBlend;
 };
