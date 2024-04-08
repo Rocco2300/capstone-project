@@ -9,7 +9,6 @@ Spectrum::Spectrum(int size, const SpectrumParameters& params) {
     m_size = size;
 
     ComputeShader spectrumShader;
-    spectrumShader.load("../include/Globals.hpp");
     spectrumShader.load("../shaders/InitialSpectrum.comp");
     m_initialProgram.attachShader(spectrumShader);
     m_initialProgram.validate();
@@ -23,7 +22,6 @@ Spectrum::Spectrum(int size, const SpectrumParameters& params) {
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
     ComputeShader timeDependentShader;
-    timeDependentShader.load("../include/Globals.hpp");
     timeDependentShader.load("../shaders/TimeDependentSpectrum.comp");
     m_timeDependentProgram.attachShader(timeDependentShader);
     m_timeDependentProgram.validate();

@@ -35,6 +35,7 @@ Texture& TextureManager::insert(const std::string& name, int size, int binding, 
     texture.setSize(size, size);
     texture.setFormat(internalFormat, format, GL_FLOAT);
 
+    std::cout << (binding) << ' ' << name << '\n';
     glActiveTexture(GL_TEXTURE0 + binding);
     glBindTexture(GL_TEXTURE_2D, texture);
     glBindImageTexture(binding, texture, 0, GL_FALSE, 0, GL_READ_WRITE, internalFormat);

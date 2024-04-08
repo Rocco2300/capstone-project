@@ -9,14 +9,12 @@ DFT::DFT(int size) {
     m_size = size;
 
     ComputeShader idftHShader;
-    idftHShader.load("../include/Globals.hpp");
     idftHShader.load("../shaders/IDFT_horizontal.comp");
     m_horizontalIDFT.attachShader(idftHShader);
     m_horizontalIDFT.validate();
     m_horizontalIDFT.setUniform("size", size);
 
     ComputeShader idftVShader;
-    idftVShader.load("../include/Globals.hpp");
     idftVShader.load("../shaders/IDFT_vertical.comp");
     m_verticalIDFT.attachShader(idftVShader);
     m_verticalIDFT.validate();

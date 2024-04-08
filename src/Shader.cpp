@@ -73,30 +73,40 @@ void Shader::compile() {
 }
 
 void Shader::load(const std::string& filePath) {
+    m_filePath = filePath;
+
     std::ifstream in(filePath);
 
     if (in.fail()) {
-        // This should not be assert since if we move files and
-        // compile with release we have to know there is a mistake
         std::cerr << "Error: Cannot open file " << filePath << '\n';
         return;
-    }
-
-    std::stringstream ss;
-    ss << in.rdbuf();
-    auto code = ss.str();
-    if (filePath.find("hpp") != std::string::npos) {
-        code.erase(0, code.find('\n') + 1);
-    } else {
-        auto index = code.find("#include");
-        if (index != std::string::npos) {
-            code.erase(index, code.find('\n', index) + 1);
-        }
     }
 
     if (m_sourceCode.empty()) {
         m_sourceCode += "#version 460\n";
     }
+
+    std::stringstream fileContent;
+    fileContent << in.rdbuf();
+    auto code  = fileContent.str();
+    auto index = code.find("#include");
+    if (index != std::string::npos) {
+        auto start = code.find('<') + 1;
+        auto size  = code.find('>') - start;
+        auto name  = code.substr(code.find('<') + 1, size);
+        std::ifstream headerStream("../include/" + name);
+        std::stringstream headerContent;
+        headerContent << headerStream.rdbuf();
+
+        auto header      = headerContent.str();
+        auto pragmaIndex = header.find("#pragma");
+
+        header.erase(pragmaIndex, header.find('\n', index) + 1);
+        code.erase(index, code.find('\n', index) + 1);
+
+        m_sourceCode += header;
+    }
+
     m_sourceCode += code;
     m_sourceCode += '\n';
 }

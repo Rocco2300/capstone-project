@@ -1,4 +1,4 @@
-#include <Bindings.hpp> // only to not get complaints from clion
+#include <Globals.hpp>
 
 layout(local_size_x = THREAD_NUMBER, local_size_y = THREAD_NUMBER, local_size_z = 1) in;
 
@@ -15,14 +15,10 @@ layout(std430, binding = PARAMS_BINDING) buffer Params {
     float spreadBlend;
 } params;
 
-layout(rg32f, binding = NOISE_BINDING) uniform image2D noise;
+layout(rgba32f, binding = BUFFERS_UNIT) uniform image2DArray buffers;
 
-layout(rg32f, binding = H0K_BINDING) uniform image2D H0K;
-layout(rgba32f, binding = H0_BINDING) uniform image2D H0;
-layout(rgba32f, binding = WAVEDATA_BINDING) uniform image2D wavedata;
-
-uniform int size;
-uniform int conjugate;
+layout(location = 0) uniform int size;
+layout(location = 1) uniform int conjugate;
 
 // Horvath, C. J. (2015), 3. Nomenclature
 // g - gravity
@@ -133,7 +129,8 @@ void main() {
         vec2 k = vec2(nx, ny) * deltaK;
         k += 0.00001;
         float kLength = length(k);
-        vec2 noiseValue = imageLoad(noise, ivec2(id.xy)).rg;
+        vec2 noiseValue = imageLoad(buffers, ivec3(id.xy, NOISE_INDEX)).rg;
+        //vec2 noiseValue = imageLoad(noise, ivec2(id.xy)).rg;
 
         float kAngle = atan(k.y, k.x);
         float omega  = dispersion(kLength);
@@ -143,11 +140,11 @@ void main() {
         float peakOmega = jonswapPeakOmega();
         float spectrum = jonswap(omega, peakOmega, alpha) * tmaCorrection(omega) * directionalSpectrum(omega, peakOmega, kAngle);
 
-        imageStore(wavedata, ivec2(id.xy), vec4(k.x, 1 / kLength, k.y, omega));
-        imageStore(H0K, ivec2(id.xy), vec4(noiseValue * sqrt(2 * spectrum * dOmegadk / kLength), 0.0, 1.0));
+        imageStore(buffers, ivec3(id.xy, WAVEDATA_INDEX), vec4(k.x, 1 / kLength, k.y, omega));
+        imageStore(buffers, ivec3(id.xy, H0K_INDEX), vec4(noiseValue * sqrt(2 * spectrum * dOmegadk / kLength), 0.0, 1.0));
     } else {
-        vec2 h0K = imageLoad(H0K, ivec2(id.xy)).rg;
-        vec2 h0MinusK = imageLoad(H0K, ivec2((size - id.x) % size, (size - id.y) % size)).rg;
-        imageStore(H0, ivec2(id.xy), vec4(h0K.x, h0K.y, h0MinusK.x, -h0MinusK.y));
+        vec2 h0K = imageLoad(buffers, ivec3(id.xy, H0K_INDEX)).rg;
+        vec2 h0MinusK = imageLoad(buffers, ivec3((size - id.x) % size, (size - id.y) % size, H0K_INDEX)).rg;
+        imageStore(buffers, ivec3(id.xy, H0_INDEX), vec4(h0K.x, h0K.y, h0MinusK.x, -h0MinusK.y));
     }
 }

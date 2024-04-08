@@ -66,16 +66,49 @@ int main() {
     camera.setSpeed(3.f);
     camera.setSensitivity(100.f);
 
-    TextureManager textureManager;
+    //TextureManager textureManager;
     Noise noise(size, size);
-    textureManager.insert("noise", size, NOISE_BINDING, true).setData(noise.data());
-    textureManager.insert("normal", size, NORMAL_BINDING);
-    textureManager.insert("displacement", size, DISPLACEMENT_BINDING);
-    textureManager.insert("H0K", size, H0K_BINDING, true);
-    textureManager.insert("H0", size, H0_BINDING);
-    textureManager.insert("buffer", size, BUFFER_BINDING, true);
-    textureManager.insert("wavedata", size, WAVEDATA_BINDING);
-    textureManager.insert("dy", size, DY_BINDING, true);
+    //textureManager.insert("noise", size, NOISE_BINDING, true).setData(noise.data());
+    //textureManager.insert("normal", size, NORMAL_UNIT);
+    //textureManager.insert("displacement", size, DISPLACEMENT_UNIT);
+    //textureManager.insert("H0K", size, H0K_BINDING, true);
+    //textureManager.insert("H0", size, H0_BINDING);
+    //textureManager.insert("buffer", size, BUFFER_BINDING);
+    //textureManager.insert("wavedata", size, WAVEDATA_BINDING);
+    //textureManager.insert("dy", size, DY_BINDING, true);
+    //textureManager.insert("dyx_dyz", size, DYX_DYZ_BINDING, true);
+
+    uint32 textureViewID;
+    uint32 textureArrayID;
+    glGenTextures(1, &textureArrayID);
+    glActiveTexture(GL_TEXTURE0 + BUFFERS_UNIT);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, textureArrayID);
+
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA32F, size, size, 12, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glBindImageTexture(BUFFERS_UNIT, textureArrayID, 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F);
+
+    glTextureSubImage3D(textureArrayID, 0, 0, 0, NOISE_INDEX, size, size, 1, GL_RGBA, GL_FLOAT, noise.data());
+
+    glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+
+    glGenTextures(1, &textureViewID);
+    glActiveTexture(GL_TEXTURE0 + DEBUG_VIEW_UNIT);
+    glBindTexture(GL_TEXTURE_2D, textureViewID);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, size, size, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glBindImageTexture(DEBUG_VIEW_UNIT, textureViewID, 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
 
     SpectrumParameters params{};
     params.scale = 1.0f;
@@ -104,14 +137,14 @@ int main() {
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
 
-    program.setUniform("size", size);
-    glBindTexture(GL_TEXTURE_2D, textureManager.get("displacement"));
-    program.setUniform("displacement", DISPLACEMENT_BINDING);
-    glBindTexture(GL_TEXTURE_2D, textureManager.get("normal"));
-    program.setUniform("normal", NORMAL_BINDING);
-    program.setUniform("view", camera.getView());
-    program.setUniform("model", oceanPlane.getTransform());
-    program.setUniform("projection", camera.getProjection());
+    //program.setUniform("size", size);
+    //glBindTexture(GL_TEXTURE_2D, textureManager.get("displacement"));
+    //program.setUniform("displacement", DISPLACEMENT_BINDING);
+    //glBindTexture(GL_TEXTURE_2D, textureManager.get("normal"));
+    //program.setUniform("normal", NORMAL_BINDING);
+    //program.setUniform("view", camera.getView());
+    //program.setUniform("model", oceanPlane.getTransform());
+    //program.setUniform("projection", camera.getProjection());
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -130,7 +163,7 @@ int main() {
         spectrum.update(now);
         dft.dispatchIDFT();
 
-        program.use();
+        //program.use();
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
         glViewport(0, 0, width, height);
@@ -138,7 +171,7 @@ int main() {
         camera.setPerspective(45.f, static_cast<float>(width) / glm::max(1, height));
         camera.update(deltaTime);
 
-        program.setUniform("view", camera.getView());
+        //program.setUniform("view", camera.getView());
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -146,9 +179,11 @@ int main() {
 
         ImGui::Begin("Debug");
 
-        ImGui::Image(textureManager.get("displacement"), {256, 256}, {0, 1}, {1, 0});
-        ImGui::Image(textureManager.get("buffer"), {256, 256}, {0, 1}, {1, 0});
-        ImGui::Image(textureManager.get("dy"), {256, 256}, {0, 1}, {1, 0});
+        //ImGui::Image(textureManager.get("dyx_dyz"), {256, 256}, {0, 1}, {1, 0});
+        //ImGui::Image(textureManager.get("displacement"), {256, 256}, {0, 1}, {1, 0});
+        //ImGui::Image(textureManager.get("normal"), {256, 256}, {0, 1}, {1, 0});
+        //ImGui::Image(textureManager.get("buffer"), {256, 256}, {0, 1}, {1, 0});
+        //ImGui::Image(textureManager.get("dy"), {256, 256}, {0, 1}, {1, 0});
 
         ImGui::End();
         ImGui::Render();
@@ -156,9 +191,9 @@ int main() {
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        oceanPlane.bind();
-        glDrawElements(GL_TRIANGLES, oceanPlane.getIndices().size(), GL_UNSIGNED_INT, 0);
-        oceanPlane.unbind();
+        //oceanPlane.bind();
+        //glDrawElements(GL_TRIANGLES, oceanPlane.getIndices().size(), GL_UNSIGNED_INT, 0);
+        //oceanPlane.unbind();
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);

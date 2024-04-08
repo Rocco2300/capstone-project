@@ -8,14 +8,14 @@ Texture::Texture() {
     m_width  = 1024;
     m_height = 1024;
 
-    m_type           = GL_RGBA;
-    m_format         = GL_UNSIGNED_INT;
+    m_type           = GL_UNSIGNED_INT;
+    m_format         = GL_RGBA;
     m_internalFormat = GL_RGBA;
 
     generateTexture();
 }
 
-Texture::Texture(int internalFormat, int width, int height, uint32 format, uint32 type) {
+Texture::Texture(int internalFormat, int width, int height, int format, int type) {
     m_width = width;
     m_height = height;
 
@@ -60,7 +60,7 @@ void Texture::setSize(int width, int height) {
     updateImage();
 }
 
-void Texture::setFormat(int internalFormat, uint32 format, uint32 type) {
+void Texture::setFormat(int internalFormat, int format, int type) {
     m_type = type;
     m_format = format;
     m_internalFormat = internalFormat;

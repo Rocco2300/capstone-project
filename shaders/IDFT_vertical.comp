@@ -1,4 +1,4 @@
-#include <Bindings.hpp> // only to not get complaints from clion
+#include <Globals.hpp>
 
 layout(local_size_x = THREAD_NUMBER, local_size_y = THREAD_NUMBER, local_size_z = 1) in;
 
