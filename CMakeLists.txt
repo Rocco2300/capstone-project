@@ -11,7 +11,8 @@ include_directories(${CMAKE_SOURCE_DIR}/external/glfw/include)
 include_directories(${CMAKE_BINARY_DIR}/external/gl3w/include)
 
 file(GLOB HEADERS include/*.hpp)
-add_executable(${PROJECT_NAME} main.cpp ${HEADERS})
+add_executable(test ${CMAKE_SOURCE_DIR}/test/test.cpp ${HEADERS})
+add_executable(${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/main.cpp ${HEADERS})
 
 if(MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX)
@@ -25,4 +26,6 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/external/glm)
 add_subdirectory(${CMAKE_SOURCE_DIR}/external/glfw)
 add_subdirectory(${CMAKE_SOURCE_DIR}/external/gl3w)
 add_subdirectory(${CMAKE_SOURCE_DIR}/external/imgui)
+
+target_link_libraries(test src glfw gl3w imgui)
 target_link_libraries(${PROJECT_NAME} src glfw gl3w imgui)

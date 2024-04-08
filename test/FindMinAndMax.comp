@@ -1,0 +1,24 @@
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+
+layout(rgba32f, binding = 1) uniform image2D textureView;
+
+layout(binding = 3) buffer MinMax {
+    float min;
+    float max;
+} minMax;
+
+float min4(vec4 v) {
+    return min(min(min(v.x, v.y), v.z), v.w);
+}
+
+float max4(vec4 v) {
+    return max(max(max(v.x, v.y), v.z), v.w);
+}
+
+void main() {
+    ivec2 id = ivec2(gl_GlobalInvocationID.xy);
+    vec4 data = imageLoad(textureView, id);
+
+    minMax.min = min(min4(data), minMax.min);
+    minMax.max = max(max4(data), minMax.max);
+}

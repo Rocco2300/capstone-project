@@ -1,0 +1,15 @@
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+
+layout(rgba32f, binding = 1) uniform image2D textureView;
+
+layout(binding = 3) buffer MinMax {
+    float min;
+    float max;
+} minMax;
+
+void main() {
+    ivec2 id = ivec2(gl_GlobalInvocationID.xy);
+    vec3 data = imageLoad(textureView, id).rgb;
+    vec3 normalizedData = (data - vec3(minMax.min)) / (vec3(minMax.max) - vec3(minMax.min));
+    imageStore(textureView, id, vec4(normalizedData, 1.0));
+}
