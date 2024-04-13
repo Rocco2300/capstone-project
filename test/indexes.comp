@@ -1,0 +1,33 @@
+layout(local_size_x = 1, local_size_y = 8, local_size_z = 1) in;
+
+layout(rgba32f, binding = 1) uniform image2D indexes;
+
+layout(std430, binding = 3) buffer indices {
+    int j[];
+} bit_reversed;
+
+void main() {
+    ivec2 id = ivec2(gl_GlobalInvocationID.xy);
+
+    int butterflyspan = int(pow(2, id.x));
+    int butterflywing;
+    if (mod(id.y, pow(2, id.x + 1)) < pow(2, id.x)) {
+        butterflywing = 1;
+    } else {
+        butterflywing = 0;
+    }
+
+    if (id.x == 0) {
+        if (butterflywing == 1) {
+            imageStore(indexes, id, vec4(bit_reversed.j[id.y], bit_reversed.j[id.y + 1], 0.0, 1.0));
+        } else {
+            imageStore(indexes, id, vec4(bit_reversed.j[id.y - 1], bit_reversed.j[id.y], 0.0, 1.0));
+        }
+    } else {
+        if (butterflywing == 1) {
+            imageStore(indexes, id, vec4(id.y, id.y + butterflyspan, 0.0, 1.0));
+        } else {
+            imageStore(indexes, id, vec4(id.y - butterflyspan, id.y, 0.0, 1.0));
+        }
+    }
+}

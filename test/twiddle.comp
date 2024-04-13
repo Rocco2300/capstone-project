@@ -1,0 +1,12 @@
+layout(local_size_x = 1, local_size_y = 8, local_size_z = 1) in;
+
+layout(rgba32f, binding = 0) uniform image2D twiddleTex;
+
+#define M_PI 3.1415
+
+void main() {
+    ivec2 id = ivec2(gl_GlobalInvocationID.xy);
+    float k = mod(id.y * (128.0 / pow(2, id.x + 1)), 128);
+    vec2 twiddle = vec2(cos(2.0 * M_PI * k / 128.0), sin(2.0 * M_PI * k / 128.0));
+    imageStore(twiddleTex, id, vec4(twiddle, 0.0, 1.0));
+}

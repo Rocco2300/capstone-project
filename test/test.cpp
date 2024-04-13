@@ -44,7 +44,6 @@ void createTexture(int binding) {
     glBindImageTexture(binding, textureViewID, 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F);
 
     glBindTexture(GL_TEXTURE_2D, 0);
-
 }
 
 struct MinMax {
