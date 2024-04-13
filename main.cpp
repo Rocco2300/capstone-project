@@ -1,5 +1,6 @@
 #include "Camera.hpp"
 #include "DFT.hpp"
+#include "FFT.hpp"
 #include "Globals.hpp"
 #include "Input.hpp"
 #include "Noise.hpp"
@@ -23,23 +24,6 @@
 
 static void errorCallback(int error, const char* description) {
     std::cerr << "Error: " << description << '\n';
-}
-
-std::unique_ptr<uint32[]> computeReversals(int size) {
-    int width  = glm::log2(size);
-    int height = size;
-
-    auto res = std::make_unique<uint32[]>(height);
-    for (int i = 0; i < height; i++) {
-        int index        = i;
-        unsigned int num = 0;
-        for (int j = 0; j < width; j++) {
-            num = (num << 1) + (index & 1);
-            index >>= 1;
-        }
-        res[i] = num;
-    }
-    return res;
 }
 
 int main() {
@@ -71,7 +55,7 @@ int main() {
         return -1;
     }
 
-    int size = 256;
+    int size = 2048;
 
     Plane oceanPlane;
     oceanPlane.setSpacing(0.25f);
@@ -85,19 +69,8 @@ int main() {
     camera.setSpeed(3.f);
     camera.setSensitivity(100.f);
 
-    TextureManager textureManager;
     Noise noise(size, size);
-    //textureManager.insert("noise", size, NOISE_BINDING, true).setData(noise.data());
-    //textureManager.insert("normal", size, NORMAL_UNIT);
-    //textureManager.insert("displacement", size, DISPLACEMENT_UNIT);
-    //textureManager.insert("H0K", size, H0K_BINDING, true);
-    //textureManager.insert("H0", size, H0_BINDING);
-    //textureManager.insert("buffer", size, BUFFER_BINDING);
-    //textureManager.insert("wavedata", size, WAVEDATA_BINDING);
-    //textureManager.insert("dy", size, DY_BINDING, true);
-    //textureManager.insert("dyx_dyz", size, DYX_DYZ_BINDING, true);
 
-    uint32 textureViewID;
     uint32 textureArrayID;
     glGenTextures(1, &textureArrayID);
     glActiveTexture(GL_TEXTURE0 + BUFFERS_UNIT);
@@ -114,22 +87,6 @@ int main() {
     glTextureSubImage3D(textureArrayID, 0, 0, 0, NOISE_INDEX, size, size, 1, GL_RGBA, GL_FLOAT,
                         noise.data());
 
-    glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
-
-    glGenTextures(1, &textureViewID);
-    glActiveTexture(GL_TEXTURE0 + DEBUG_VIEW_UNIT);
-    glBindTexture(GL_TEXTURE_2D, textureViewID);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, size, size, 0, GL_RGBA, GL_FLOAT, nullptr);
-    glBindImageTexture(DEBUG_VIEW_UNIT, textureViewID, 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F);
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-
     auto windSpeed     = 25.f;
     auto windDirection = glm::pi<float>() / 4.f;
     auto wind          = glm::vec2(glm::cos(windDirection), glm::sin(windDirection)) * windSpeed;
@@ -139,25 +96,9 @@ int main() {
     params.wind      = wind;
 
     DFT dft(size);
+    FFT fft(size);
     Spectrum spectrum(size, params);
     spectrum.initialize();
-
-    auto reversal = computeReversals(size);
-    unsigned int ssbo;
-    glGenBuffers(1, &ssbo);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(uint32) * size, reversal.get(), GL_STATIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, REVERSED_BINDING, ssbo);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-
-    Program program2;
-    ComputeShader shader2("../shaders/ButterflyTexture.comp");
-    program2.attachShader(shader2);
-    program2.validate();
-    program2.use();
-    program2.setUniform("size", size);
-    glDispatchCompute(glm::log2(size), size / 8, 1);
-    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
     VertexShader vertexShader("../shaders/ocean_surface.vert");
     FragmentShader fragmentShader("../shaders/ocean_surface.frag");
@@ -172,8 +113,6 @@ int main() {
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
 
-    //program.setUniform("displacement", DISPLACEMENT_UNIT);
-    //program.setUniform("normal", NORMAL_UNIT);
     program.setUniform("view", camera.getView());
     program.setUniform("model", oceanPlane.getTransform());
     program.setUniform("projection", camera.getProjection());
@@ -193,7 +132,9 @@ int main() {
         prev            = now;
 
         spectrum.update(now);
-        dft.dispatchIDFT();
+        //dft.dispatchIDFT();
+        fft.dispatchIFFT(DY_INDEX);
+        fft.dispatchIFFT(DYX_DYZ_INDEX);
 
         program.use();
         int width, height;

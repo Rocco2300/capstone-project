@@ -1,0 +1,55 @@
+#include <Globals.hpp>
+
+layout(local_size_x = THREAD_NUMBER, local_size_y = THREAD_NUMBER, local_size_z = 1) in;
+
+#define M_PI 3.1415926
+
+layout(rgba32f, binding = BUFFERS_UNIT) uniform image2DArray buffers;
+
+layout(location = 0) uniform int stage;
+layout(location = 1) uniform int pingpong;
+layout(location = 2) uniform int buffer0;
+layout(location = 3) uniform int buffer1;
+layout(location = 4) uniform int direction;
+
+vec2 complexMul(vec2 a, vec2 b) {
+    return vec2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
+}
+
+void horizontalFFT() {
+    ivec2 id = ivec2(gl_GlobalInvocationID.xy);
+    int iput = (pingpong == 0) ? buffer0 : buffer1;
+    int oput = (pingpong == 0) ? buffer1 : buffer0;
+
+    // x, y - twiddle     z, w - idx
+    vec4 data = imageLoad(buffers, ivec3(stage, id.x, BUTTERFLY_INDEX));
+    vec2 a = imageLoad(buffers, ivec3(data.z, id.y, iput)).rg;
+    vec2 b = imageLoad(buffers, ivec3(data.w, id.y, iput)).rg;
+    vec2 t = vec2(data.x, data.y);
+
+    vec2 result = a + complexMul(t, b);
+    imageStore(buffers, ivec3(id, oput), vec4(result, 0.0, 1.0));
+}
+
+void verticalFFT() {
+    ivec2 id = ivec2(gl_GlobalInvocationID.xy);
+    int iput = (pingpong == 0) ? buffer0 : buffer1;
+    int oput = (pingpong == 0) ? buffer1 : buffer0;
+
+    // x, y - twiddle     z, w - idx
+    vec4 data = imageLoad(buffers, ivec3(stage, id.y, BUTTERFLY_INDEX));
+    vec2 a = imageLoad(buffers, ivec3(id.x, data.z, iput)).rg;
+    vec2 b = imageLoad(buffers, ivec3(id.x, data.w, iput)).rg;
+    vec2 t = vec2(data.x, data.y);
+
+    vec2 result = a + complexMul(t, b);
+    imageStore(buffers, ivec3(id, oput), vec4(result, 0.0, 1.0));
+}
+
+void main() {
+    if (direction == 0) {
+        horizontalFFT();
+    } else {
+        verticalFFT();
+    }
+}

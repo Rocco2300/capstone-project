@@ -1,0 +1,29 @@
+#include <Globals.hpp>
+
+layout(local_size_x = THREAD_NUMBER, local_size_y = THREAD_NUMBER, local_size_z = 1) in;
+
+#define M_PI 3.1415926
+
+layout(rgba32f, binding = BUFFERS_UNIT) uniform image2DArray buffers;
+
+layout(location = 0) uniform int size;
+layout(location = 1) uniform int pingpong;
+layout(location = 2) uniform int buffer0;
+layout(location = 3) uniform int buffer1;
+
+void main() {
+    ivec2 id = ivec2(gl_GlobalInvocationID.xy);
+
+    int bufferIndex = (pingpong == 0) ? buffer0 : buffer1;
+    ivec3 coords = ivec3(id, bufferIndex);
+
+    vec4 data = imageLoad(buffers, coords);
+
+    float perms[] = {1.0, -1.0};
+    int index = int(mod(int(id.x + id.y), 2));
+    float perm = perms[index];
+
+    data /= float(size * size);
+    data *= perm;
+    imageStore(buffers, coords, data);
+}

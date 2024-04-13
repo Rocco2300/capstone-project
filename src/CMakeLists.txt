@@ -11,6 +11,7 @@ add_library(src
         TextureManager.cpp
         DFT.cpp
         Spectrum.cpp
+        FFT.cpp
 )
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
