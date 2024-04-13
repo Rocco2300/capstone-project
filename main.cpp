@@ -32,7 +32,7 @@ int main() {
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-    GLFWwindow *window = glfwCreateWindow(1280, 720, "Capstone", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(1280, 720, "Capstone", nullptr, nullptr);
     if (!window) {
         std::cerr << "Window creation failed.\n";
         glfwTerminate();
@@ -52,7 +52,7 @@ int main() {
         return -1;
     }
 
-    int size = 128;
+    int size = 256;
 
     Plane oceanPlane;
     oceanPlane.setSpacing(0.25f);
@@ -66,7 +66,7 @@ int main() {
     camera.setSpeed(3.f);
     camera.setSensitivity(100.f);
 
-    //TextureManager textureManager;
+    TextureManager textureManager;
     Noise noise(size, size);
     //textureManager.insert("noise", size, NOISE_BINDING, true).setData(noise.data());
     //textureManager.insert("normal", size, NORMAL_UNIT);
@@ -92,7 +92,8 @@ int main() {
     glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA32F, size, size, 12, 0, GL_RGBA, GL_FLOAT, nullptr);
     glBindImageTexture(BUFFERS_UNIT, textureArrayID, 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F);
 
-    glTextureSubImage3D(textureArrayID, 0, 0, 0, NOISE_INDEX, size, size, 1, GL_RGBA, GL_FLOAT, noise.data());
+    glTextureSubImage3D(textureArrayID, 0, 0, 0, NOISE_INDEX, size, size, 1, GL_RGBA, GL_FLOAT,
+                        noise.data());
 
     glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
@@ -110,15 +111,13 @@ int main() {
 
     glBindTexture(GL_TEXTURE_2D, 0);
 
+    auto windSpeed     = 25.f;
+    auto windDirection = glm::pi<float>() / 4.f;
+    auto wind          = glm::vec2(glm::cos(windDirection), glm::sin(windDirection)) * windSpeed;
     SpectrumParameters params{};
-    params.scale = 1.0f;
-    params.angle = 172.0f / 180.f * glm::pi<float>();
-    params.depth = 1000.0f;
-    params.fetch = 8000.0f;
-    params.gamma = 3.3f;
-    params.patchSize = 250.f;
-    params.windSpeed = 75.f;
-    params.spreadBlend = 0.25f;
+    params.a         = 4.0f;
+    params.patchSize = 1250.0f;
+    params.wind      = wind;
 
     DFT dft(size);
     Spectrum spectrum(size, params);
@@ -137,18 +136,15 @@ int main() {
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
 
-    //program.setUniform("size", size);
-    //glBindTexture(GL_TEXTURE_2D, textureManager.get("displacement"));
-    //program.setUniform("displacement", DISPLACEMENT_BINDING);
-    //glBindTexture(GL_TEXTURE_2D, textureManager.get("normal"));
-    //program.setUniform("normal", NORMAL_BINDING);
-    //program.setUniform("view", camera.getView());
-    //program.setUniform("model", oceanPlane.getTransform());
-    //program.setUniform("projection", camera.getProjection());
+    //program.setUniform("displacement", DISPLACEMENT_UNIT);
+    //program.setUniform("normal", NORMAL_UNIT);
+    program.setUniform("view", camera.getView());
+    program.setUniform("model", oceanPlane.getTransform());
+    program.setUniform("projection", camera.getProjection());
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO &io = ImGui::GetIO();
+    ImGuiIO& io = ImGui::GetIO();
     (void) io;
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -156,14 +152,14 @@ int main() {
 
     float prev = glfwGetTime();
     while (!glfwWindowShouldClose(window)) {
-        float now = glfwGetTime();
+        float now       = glfwGetTime();
         float deltaTime = now - prev;
-        prev = now;
+        prev            = now;
 
         spectrum.update(now);
         dft.dispatchIDFT();
 
-        //program.use();
+        program.use();
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
         glViewport(0, 0, width, height);
@@ -171,7 +167,7 @@ int main() {
         camera.setPerspective(45.f, static_cast<float>(width) / glm::max(1, height));
         camera.update(deltaTime);
 
-        //program.setUniform("view", camera.getView());
+        program.setUniform("view", camera.getView());
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -191,9 +187,9 @@ int main() {
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        //oceanPlane.bind();
-        //glDrawElements(GL_TRIANGLES, oceanPlane.getIndices().size(), GL_UNSIGNED_INT, 0);
-        //oceanPlane.unbind();
+        oceanPlane.bind();
+        glDrawElements(GL_TRIANGLES, oceanPlane.getIndices().size(), GL_UNSIGNED_INT, 0);
+        oceanPlane.unbind();
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);

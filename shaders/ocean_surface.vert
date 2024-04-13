@@ -1,33 +1,23 @@
+#include <Globals.hpp>
+
 layout (location = 0) in vec4 position;
 layout (location = 1) in vec2 texCoord;
 
-uniform int size;
+layout(rgba32f, binding = BUFFERS_UNIT) uniform image2DArray buffers;
 
 uniform mat4 view;
 uniform mat4 model;
 uniform mat4 projection;
 
-uniform sampler2D normal;
-uniform sampler2D displacement;
-
-out vec4 outColor;
+out vec4 outNormal;
 
 void main() {
-    vec2 coords = position.xz / (size * 0.25);
-    vec4 height = texture(displacement, coords);
+    vec2 coords = position.xz * (1.0 / 0.25);
+    vec4 height = imageLoad(buffers, ivec3(coords, DISPLACEMENT_INDEX));
     vec4 finalPos = position;
     finalPos.y = height.x;
     finalPos = model * finalPos;
 
-    vec3 normalVec = texture(normal, coords).xyz;
-    normalVec = normalize(normalVec * 2.0 - 1.0);
-    vec3 lightPos = vec3(128.0, 128.0, 0.0);
-    vec3 lightDir = normalize(finalPos.xyz - lightPos);
-    //vec3 lightDir = normalize(vec3(-1.0, -1.0, 0.0));
-    float shadow  = max(0.0, dot(-lightDir, normalVec));
-
-    vec4 waterColor = vec4(0.1, 0.3, 0.7, 1.0);
-    outColor = shadow * waterColor;
-
     gl_Position = projection * view * finalPos;
+    outNormal = imageLoad(buffers, ivec3(coords, NORMAL_INDEX));
 }

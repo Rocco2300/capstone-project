@@ -9,7 +9,7 @@ Spectrum::Spectrum(int size, const SpectrumParameters& params) {
     m_size = size;
 
     ComputeShader spectrumShader;
-    spectrumShader.load("../shaders/InitialSpectrum.comp");
+    spectrumShader.load("../shaders/PhillipsSpectrum.comp");
     m_initialProgram.attachShader(spectrumShader);
     m_initialProgram.validate();
     m_initialProgram.use();

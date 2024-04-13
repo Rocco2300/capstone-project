@@ -2,7 +2,7 @@
 
 #include "Program.hpp"
 
-struct SpectrumParameters
+struct JonswapParameters
 {
     float scale;
     float angle;
@@ -13,6 +13,14 @@ struct SpectrumParameters
     float windSpeed;
     float spreadBlend;
 };
+
+struct PhillipsParameters {
+    float a;
+    float patchSize;
+    glm::vec2 wind;
+};
+
+typedef PhillipsParameters SpectrumParameters;
 
 class Spectrum {
 private:

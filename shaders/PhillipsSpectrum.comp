@@ -1,0 +1,62 @@
+#include <Globals.hpp>
+
+layout (local_size_x = THREAD_NUMBER, local_size_y = THREAD_NUMBER, local_size_z = 1) in;
+
+#define M_PI 3.1415926
+
+layout (std430, binding = PARAMS_BINDING) buffer Params {
+    float A;
+    float patchSize;
+    vec2 wind;
+} params;
+
+layout (rgba32f, binding = BUFFERS_UNIT) uniform image2DArray buffers;
+
+layout (location = 0) uniform int size;
+layout (location = 1) uniform int conjugate;
+
+const float g = 9.81;
+
+float dispersion(float k) {
+    return sqrt(g * k);
+}
+
+float phillips(vec2 k) {
+    float kLength = length(k);
+    if (kLength == 0.0) {
+        return 0.0;
+    }
+
+    float windSpeed = length(params.wind);
+    float L = windSpeed * windSpeed / g;
+    float kL = kLength * L;
+    float kw = dot(normalize(k), normalize(params.wind));
+
+    float damping = 0.001;
+    float l = L * damping;
+
+    return params.A * exp(-1.0 / (kL * kL)) / (kLength * kLength * kLength * kLength) * (kw * kw) * exp(-kLength * kLength * l * l);
+}
+
+void main() {
+    ivec2 id = ivec2(gl_GlobalInvocationID.xy);
+
+    if (conjugate == 0) {
+        float deltaK = 2 * M_PI / params.patchSize;
+        int nx = int(id.x - size / 2);
+        int ny = int(id.y - size / 2);
+        vec2 k = vec2(nx, ny) * deltaK;
+        float kLength = length(k);
+
+        float spectrum = phillips(k);
+        float omega = dispersion(kLength);
+        vec2 noiseValue = imageLoad(buffers, ivec3(id.xy, NOISE_INDEX)).rg;
+
+        imageStore(buffers, ivec3(id.xy, WAVEDATA_INDEX), vec4(k.x, 1 / kLength, k.y, omega));
+        imageStore(buffers, ivec3(id.xy, H0K_INDEX), vec4(noiseValue * sqrt(spectrum / 2.0), 0.0, 1.0));
+    } else {
+        vec2 h0K = imageLoad(buffers, ivec3(id.xy, H0K_INDEX)).rg;
+        vec2 h0MinusK = imageLoad(buffers, ivec3((size - id.x) % size, (size - id.y) % size, H0K_INDEX)).rg;
+        imageStore(buffers, ivec3(id.xy, H0_INDEX), vec4(h0K.x, h0K.y, h0MinusK.x, -h0MinusK.y));
+    }
+}

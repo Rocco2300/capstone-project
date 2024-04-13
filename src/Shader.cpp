@@ -105,6 +105,7 @@ void Shader::load(const std::string& filePath) {
         code.erase(index, code.find('\n', index) + 1);
 
         m_sourceCode += header;
+        m_sourceCode += '\n';
     }
 
     m_sourceCode += code;
