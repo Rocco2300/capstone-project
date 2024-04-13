@@ -1,26 +1,45 @@
 #include "Camera.hpp"
+#include "DFT.hpp"
 #include "Globals.hpp"
 #include "Input.hpp"
 #include "Noise.hpp"
 #include "Plane.hpp"
 #include "Program.hpp"
 #include "Shader.hpp"
-#include "TextureManager.hpp"
-#include "DFT.hpp"
 #include "Spectrum.hpp"
+#include "TextureManager.hpp"
 
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
 #include <glm/gtc/constants.hpp>
+#include <glm/gtx/integer.hpp>
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
 #include <iostream>
+#include <memory>
 
-static void errorCallback(int error, const char *description) {
+static void errorCallback(int error, const char* description) {
     std::cerr << "Error: " << description << '\n';
+}
+
+std::unique_ptr<uint32[]> computeReversals(int size) {
+    int width  = glm::log2(size);
+    int height = size;
+
+    auto res = std::make_unique<uint32[]>(height);
+    for (int i = 0; i < height; i++) {
+        int index        = i;
+        unsigned int num = 0;
+        for (int j = 0; j < width; j++) {
+            num = (num << 1) + (index & 1);
+            index >>= 1;
+        }
+        res[i] = num;
+    }
+    return res;
 }
 
 int main() {
@@ -122,6 +141,23 @@ int main() {
     DFT dft(size);
     Spectrum spectrum(size, params);
     spectrum.initialize();
+
+    auto reversal = computeReversals(size);
+    unsigned int ssbo;
+    glGenBuffers(1, &ssbo);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(uint32) * size, reversal.get(), GL_STATIC_DRAW);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, REVERSED_BINDING, ssbo);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+    Program program2;
+    ComputeShader shader2("../shaders/ButterflyTexture.comp");
+    program2.attachShader(shader2);
+    program2.validate();
+    program2.use();
+    program2.setUniform("size", size);
+    glDispatchCompute(glm::log2(size), size / 8, 1);
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
     VertexShader vertexShader("../shaders/ocean_surface.vert");
     FragmentShader fragmentShader("../shaders/ocean_surface.frag");

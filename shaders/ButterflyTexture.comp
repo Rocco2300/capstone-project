@@ -1,0 +1,44 @@
+#include <Globals.hpp>
+
+layout(local_size_x = 1, local_size_y = 8, local_size_z = 1) in;
+
+#define M_PI 3.1415926
+
+layout (rgba32f, binding = BUFFERS_UNIT) uniform image2DArray buffers;
+
+layout (location = 0) uniform int size;
+layout (location = 1) uniform int conjugate;
+
+layout(std430, binding = REVERSED_BINDING) buffer indices {
+    int j[];
+} bit_reversed;
+
+void main() {
+    ivec2 id = ivec2(gl_GlobalInvocationID.xy);
+
+    float k = mod(id.y * (float(size) / pow(2, id.x + 1)), size);
+    vec2 twiddle = vec2(cos(2.0 * M_PI * k / size), sin(2.0 * M_PI * k / size));
+
+    int butterflyspan = int(pow(2, id.x));
+    int butterflywing;
+    if (mod(id.y, pow(2, id.x + 1)) < pow(2, id.x)) {
+        butterflywing = 1;
+    } else {
+        butterflywing = 0;
+    }
+
+    ivec3 coord = ivec3(id, BUTTERFLY_INDEX);
+    if (id.x == 0) {
+        if (butterflywing == 1) {
+            imageStore(buffers, coord, vec4(twiddle, bit_reversed.j[id.y], bit_reversed.j[id.y + 1]));
+        } else {
+            imageStore(buffers, coord, vec4(twiddle, bit_reversed.j[id.y - 1], bit_reversed.j[id.y]));
+        }
+    } else {
+        if (butterflywing == 1) {
+            imageStore(buffers, coord, vec4(twiddle, id.y, id.y + butterflyspan));
+        } else {
+            imageStore(buffers, coord, vec4(twiddle, id.y - butterflyspan, id.y));
+        }
+    }
+}
