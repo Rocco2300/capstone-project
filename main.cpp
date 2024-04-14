@@ -13,14 +13,12 @@
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
 #include <glm/gtc/constants.hpp>
-#include <glm/gtx/integer.hpp>
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
 #include <iostream>
-#include <memory>
 
 static void errorCallback(int error, const char* description) {
     std::cerr << "Error: " << description << '\n';
@@ -55,7 +53,7 @@ int main() {
         return -1;
     }
 
-    int size = 2048;
+    int size = 256;
 
     Plane oceanPlane;
     oceanPlane.setSpacing(0.25f);
@@ -69,23 +67,14 @@ int main() {
     camera.setSpeed(3.f);
     camera.setSensitivity(100.f);
 
+    Texture texArray;
+    texArray.setSize(size, size, 12);
+    texArray.setFormat(GL_RGBA32F, GL_RGBA, GL_FLOAT);
+    texArray.create();
+
     Noise noise(size, size);
-
-    uint32 textureArrayID;
-    glGenTextures(1, &textureArrayID);
-    glActiveTexture(GL_TEXTURE0 + BUFFERS_UNIT);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, textureArrayID);
-
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA32F, size, size, 12, 0, GL_RGBA, GL_FLOAT, nullptr);
-    glBindImageTexture(BUFFERS_UNIT, textureArrayID, 0, GL_TRUE, 0, GL_READ_WRITE, GL_RGBA32F);
-
-    glTextureSubImage3D(textureArrayID, 0, 0, 0, NOISE_INDEX, size, size, 1, GL_RGBA, GL_FLOAT,
-                        noise.data());
+    TextureManager textureManager;
+    textureManager.insert("buffers", BUFFERS_UNIT, size, 12).setData(noise.data(), NOISE_INDEX);
 
     auto windSpeed     = 25.f;
     auto windDirection = glm::pi<float>() / 4.f;
