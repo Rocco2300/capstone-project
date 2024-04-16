@@ -1,0 +1,62 @@
+#include <Globals.hpp>
+
+layout(local_size_x = THREAD_NUMBER, local_size_y = THREAD_NUMBER, local_size_z = 1) in;
+
+#define M_PI 3.1415926
+
+layout(rgba32f, binding = BUFFERS_UNIT) uniform image2DArray buffers;
+
+layout(location = 0) uniform int size;
+layout(location = 1) uniform int buffer0;
+layout(location = 2) uniform int buffer1;
+layout(location = 3) uniform int direction;
+
+vec2 complexMul(vec2 a, vec2 b) {
+    return vec2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
+}
+
+void horizontalPass() {
+    ivec2 id = ivec2(gl_GlobalInvocationID.xy);
+
+    vec2 res = vec2(0.0);
+    for (int x = 0; x < size; x++) {
+        float phase = 2.0 * M_PI * x * id.x / size;
+        vec2 exponent = vec2(cos(phase), sin(phase));
+
+        vec2 val = imageLoad(buffers, ivec3(x, id.y, buffer0)).rg;
+        res += complexMul(val, exponent);
+    }
+
+    imageStore(buffers, ivec3(id, BUFFER_INDEX), vec4(res, 0.0, 1.0));
+}
+
+void verticalPass() {
+    ivec2 id = ivec2(gl_GlobalInvocationID.xy);
+
+    vec2 res = vec2(0.0);
+    for (int y = 0; y < size; y++) {
+        float phase = 2.0 * M_PI * y * id.y / size;
+        vec2 exponent = vec2(cos(phase), sin(phase));
+
+        vec2 val = imageLoad(buffers, ivec3(id.x, y, BUFFER_INDEX)).rg;
+        res += complexMul(val, exponent);
+    }
+
+
+    float perms[] = {1.0, -1.0};
+    int index = int(mod(int(id.x + id.y), 2));
+    float perm = perms[index];
+
+    res /= float(size * size);
+    res *= perm;
+
+    imageStore(buffers, ivec3(id, buffer1), vec4(res, 0.0, 1.0));
+}
+
+void main() {
+    if (direction == 0) {
+        horizontalPass();
+    } else {
+        verticalPass();
+    }
+}
