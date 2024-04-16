@@ -53,7 +53,7 @@ int main() {
         return -1;
     }
 
-    int size = 256;
+    int size = 64;
 
     Plane oceanPlane;
     oceanPlane.setSpacing(0.25f);
@@ -67,27 +67,36 @@ int main() {
     camera.setSpeed(3.f);
     camera.setSensitivity(100.f);
 
-    Texture texArray;
-    texArray.setSize(size, size, 12);
-    texArray.setFormat(GL_RGBA32F, GL_RGBA, GL_FLOAT);
-    texArray.create();
+    TextureManager textureManager;
+    textureManager.insert("displacement", DISPLACEMENT_UNIT, size);
+    textureManager.insert("normal", NORMAL_UNIT, size);
 
     Noise noise(size, size);
-    TextureManager textureManager;
-    textureManager.insert("buffers", BUFFERS_UNIT, size, 12).setData(noise.data(), NOISE_INDEX);
+    std::vector<float> initialData(4 * size * size, 0);
+    auto* texArray = &textureManager.insert("buffers", BUFFERS_UNIT, size, 14);
+    texArray->setData(noise.data(), NOISE_INDEX);
+    texArray->setData(&initialData[0], HEIGHT_INDEX);
+    texArray->setData(&initialData[0], NORMAL_INDEX);
+    texArray->setData(&initialData[0], DISPLACEMENT_INDEX);
 
-    auto windSpeed     = 25.f;
+    auto windSpeed     = 10.5f;
     auto windDirection = glm::pi<float>() / 4.f;
     auto wind          = glm::vec2(glm::cos(windDirection), glm::sin(windDirection)) * windSpeed;
     SpectrumParameters params{};
     params.a         = 4.0f;
-    params.patchSize = 1250.0f;
+    params.patchSize = 250.0f;
     params.wind      = wind;
 
     DFT dft(size);
     FFT fft(size);
     Spectrum spectrum(size, params);
     spectrum.initialize();
+
+    Program textureMerger;
+    ComputeShader textureMergerShader;
+    textureMergerShader.load("../shaders/TextureMerger.comp");
+    textureMerger.attachShader(textureMergerShader);
+    textureMerger.validate();
 
     VertexShader vertexShader("../shaders/ocean_surface.vert");
     FragmentShader fragmentShader("../shaders/ocean_surface.frag");
@@ -121,9 +130,12 @@ int main() {
         prev            = now;
 
         spectrum.update(now);
-        //dft.dispatchIDFT();
-        fft.dispatchIFFT(DY_INDEX);
-        fft.dispatchIFFT(DYX_DYZ_INDEX);
+        dft.dispatchIDFT();
+        //fft.dispatchIFFT(DY_INDEX);
+        //fft.dispatchIFFT(DYX_DYZ_INDEX);
+        textureMerger.use();
+        glDispatchCompute(size / THREAD_NUMBER, size / THREAD_NUMBER, 1);
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
         program.use();
         int width, height;
@@ -141,11 +153,8 @@ int main() {
 
         ImGui::Begin("Debug");
 
-        //ImGui::Image(textureManager.get("dyx_dyz"), {256, 256}, {0, 1}, {1, 0});
-        //ImGui::Image(textureManager.get("displacement"), {256, 256}, {0, 1}, {1, 0});
-        //ImGui::Image(textureManager.get("normal"), {256, 256}, {0, 1}, {1, 0});
-        //ImGui::Image(textureManager.get("buffer"), {256, 256}, {0, 1}, {1, 0});
-        //ImGui::Image(textureManager.get("dy"), {256, 256}, {0, 1}, {1, 0});
+        ImGui::Image(textureManager.get("normal"), {256, 256}, {0, 1}, {1, 0});
+        ImGui::Image(textureManager.get("displacement"), {256, 256}, {0, 1}, {1, 0});
 
         ImGui::End();
         ImGui::Render();

@@ -21,14 +21,29 @@ DFT::DFT(int size) {
     m_verticalIDFT.setUniform("size", size);
     m_verticalIDFT.setUniform("scale", 1);
     m_verticalIDFT.setUniform("permute", 1);
+
+    ComputeShader idftShader;
+    idftShader.load("../shaders/Gerstner.comp");
+    m_IDFT.attachShader(idftShader);
+    m_IDFT.validate();
+    m_IDFT.setUniform("size", size);
 }
 
 void DFT::dispatchIDFT() {
-    m_horizontalIDFT.use();
+    //m_horizontalIDFT.use();
+    //glDispatchCompute(m_size / THREAD_NUMBER, m_size / THREAD_NUMBER, 1);
+    //glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+    //m_verticalIDFT.use();
+    //glDispatchCompute(m_size / THREAD_NUMBER, m_size / THREAD_NUMBER, 1);
+    //glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+    m_IDFT.use();
+    m_IDFT.setUniform("direction", 0);
     glDispatchCompute(m_size / THREAD_NUMBER, m_size / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-    m_verticalIDFT.use();
+    m_IDFT.setUniform("direction", 1);
     glDispatchCompute(m_size / THREAD_NUMBER, m_size / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 }

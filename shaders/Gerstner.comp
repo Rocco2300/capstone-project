@@ -1,0 +1,81 @@
+#include <Globals.hpp>
+
+layout(local_size_x = THREAD_NUMBER, local_size_y = THREAD_NUMBER, local_size_z = 1) in;
+
+#define M_PI 3.1415926
+
+layout(rgba32f, binding = BUFFERS_UNIT) uniform image2DArray buffers;
+
+layout(location = 0) uniform int size;
+layout(location = 1) uniform int direction;
+
+vec2 complexMul(vec2 a, vec2 b) {
+    return vec2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
+}
+
+void horizontalPass() {
+    ivec2 id = ivec2(gl_GlobalInvocationID.xy);
+
+    vec2 h = vec2(0.0);
+    vec2 d = vec2(0.0);
+    vec2 n = vec2(0.0);
+    for (int x = 0; x < size; x++) {
+        float phase = 2.0 * M_PI * x * id.x / size;
+        vec2 exponent = vec2(cos(phase), sin(phase));
+
+        vec2 dy = imageLoad(buffers, ivec3(x, id.y, DY_INDEX)).rg;
+        vec2 dx_dz = imageLoad(buffers, ivec3(x, id.y, DX_DZ_INDEX)).rg;
+        vec2 dyx_dyz = imageLoad(buffers, ivec3(x, id.y, DYX_DYZ_INDEX)).rg;
+
+        h += complexMul(dy, exponent);
+        d += complexMul(dx_dz, exponent);
+        n += complexMul(dyx_dyz, exponent);
+    }
+
+    imageStore(buffers, ivec3(id, DISPLACEMENT_BUFFER_INDEX), vec4(h, d));
+    imageStore(buffers, ivec3(id, NORMAL_BUFFER_INDEX), vec4(n, 0.0, 1.0));
+}
+
+void verticalPass() {
+    ivec2 id = ivec2(gl_GlobalInvocationID.xy);
+
+    vec2 h = vec2(0.0);
+    vec2 d = vec2(0.0);
+    vec2 n = vec2(0.0);
+    for (int y = 0; y < size; y++) {
+        float phase = 2.0 * M_PI * y * id.y / size;
+        vec2 exponent = vec2(cos(phase), sin(phase));
+
+        vec2 dy = imageLoad(buffers, ivec3(id.x, y, DISPLACEMENT_BUFFER_INDEX)).rg;
+        vec2 dx_dz = imageLoad(buffers, ivec3(id.x, y, DISPLACEMENT_BUFFER_INDEX)).ba;
+        vec2 dyx_dyz = imageLoad(buffers, ivec3(id.x, y, NORMAL_BUFFER_INDEX)).rg;
+
+        h += complexMul(dy, exponent);
+        d += complexMul(dx_dz, exponent);
+        n += complexMul(dyx_dyz, exponent);
+    }
+
+    h /= float(size * size);
+    d /= float(size * size);
+    n /= float(size * size);
+
+    float perms[] = {1.0, -1.0};
+    int index = int(mod(int(id.x + id.y), 2));
+    float perm = perms[index];
+
+    h *= perm;
+    d *= perm;
+    n *= perm;
+
+    imageStore(buffers, ivec3(id, HEIGHT_INDEX), vec4(h, 0.0, 1.0));
+    imageStore(buffers, ivec3(id, NORMAL_INDEX), vec4(n, 0.0, 1.0));
+    imageStore(buffers, ivec3(id, DISPLACEMENT_INDEX), vec4(d, 0.0, 1.0));
+}
+
+void main() {
+    if (direction == 0) {
+        horizontalPass();
+    } else {
+        verticalPass();
+    }
+}

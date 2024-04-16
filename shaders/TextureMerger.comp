@@ -1,0 +1,22 @@
+#include <Globals.hpp>
+
+layout(local_size_x = THREAD_NUMBER, local_size_y = THREAD_NUMBER, local_size_z = 1) in;
+
+#define M_PI 3.1415926
+
+layout(rgba32f, binding = BUFFERS_UNIT) uniform image2DArray buffers;
+layout(rgba32f, binding = DISPLACEMENT_UNIT) uniform image2D displacement;
+layout(rgba32f, binding = NORMAL_UNIT) uniform image2D normal;
+
+void main() {
+    ivec2 id = ivec2(gl_GlobalInvocationID.xy);
+
+    float h = imageLoad(buffers, ivec3(id, HEIGHT_INDEX)).r;
+    vec2 d  = imageLoad(buffers, ivec3(id, DISPLACEMENT_INDEX)).rg;
+    vec2 n  = imageLoad(buffers, ivec3(id, NORMAL_INDEX)).rg;
+
+    vec3 displacementVec = vec3(d.x, h, d.y);
+    vec3 normalVec = normalize(vec3(-n.x, 1.0, -n.y));
+    imageStore(displacement, id, vec4(displacementVec, 1.0));
+    imageStore(normal, id, vec4(normalVec, 1.0));
+}
