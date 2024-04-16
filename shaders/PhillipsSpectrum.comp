@@ -23,7 +23,7 @@ float dispersion(float k) {
 
 float phillips(vec2 k) {
     float kLength = length(k);
-    if (kLength == 0.0) {
+    if (kLength  < 0.0001) {
         return 0.0;
     }
 
@@ -45,7 +45,7 @@ void main() {
         float deltaK = 2 * M_PI / params.patchSize;
         int nx = int(id.x - size / 2);
         int ny = int(id.y - size / 2);
-        vec2 k = vec2(nx, ny) * deltaK;
+        vec2 k = (vec2(nx, ny) * deltaK) + 0.00001;
         float kLength = length(k);
 
         float spectrum = phillips(k);
