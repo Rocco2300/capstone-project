@@ -61,7 +61,7 @@ FFT::FFT(int size) {
     m_invertAndPermuteProgram.setUniform("size", size);
 }
 
-void FFT::dispatchIFFT(int input) {
+void FFT::dispatchIFFT(int input, int output) {
     int pingpong = 0;
     m_ifftProgram.setUniform("buffer0", input);
     m_ifftProgram.setUniform("buffer1", BUFFER_INDEX);
@@ -95,14 +95,13 @@ void FFT::dispatchIFFT(int input) {
     // final output is in buffer not in input
     // if doing multiple fft buffer will be reused
     // as such will delete previous work
-    if (pingpong == 1) {
-        m_copyProgram.use();
-        m_copyProgram.setUniform("to", input);
-        m_copyProgram.setUniform("from", BUFFER_INDEX);
+    auto in = (pingpong == 1) ? BUFFER_INDEX : input;
+    m_copyProgram.use();
+    m_copyProgram.setUniform("to", output);
+    m_copyProgram.setUniform("from", in);
 
-        glDispatchCompute(m_height / THREAD_NUMBER, m_height / THREAD_NUMBER, 1);
-        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-    }
+    glDispatchCompute(m_height / THREAD_NUMBER, m_height / THREAD_NUMBER, 1);
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 }
 
 void FFT::setSize(int size) {

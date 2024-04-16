@@ -15,6 +15,6 @@ private:
 public:
     FFT(int size);
 
-    void dispatchIFFT(int input);
+    void dispatchIFFT(int input, int output);
     void setSize(int size);
 };
