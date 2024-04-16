@@ -5,7 +5,9 @@
 
 #include "GL/gl3w.h"
 
-Spectrum::Spectrum(int size, const SpectrumParameters& params) {
+#include <iostream>
+
+Spectrum::Spectrum(int size) {
     m_size = size;
 
     ComputeShader spectrumShader;
@@ -15,16 +17,18 @@ Spectrum::Spectrum(int size, const SpectrumParameters& params) {
     m_initialProgram.use();
     m_initialProgram.setUniform("size", m_size);
 
+    ComputeShader timeDependentShader;
+    timeDependentShader.load("../shaders/TimeDependentSpectrum.comp");
+    m_timeDependentProgram.attachShader(timeDependentShader);
+    m_timeDependentProgram.validate();
+}
+
+void Spectrum::setParameters(SpectrumParameters& params) {
     glGenBuffers(1, &m_paramsSSBO);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_paramsSSBO);
     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(params), &params, GL_STATIC_READ);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, PARAMS_BINDING, m_paramsSSBO);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-
-    ComputeShader timeDependentShader;
-    timeDependentShader.load("../shaders/TimeDependentSpectrum.comp");
-    m_timeDependentProgram.attachShader(timeDependentShader);
-    m_timeDependentProgram.validate();
 }
 
 void Spectrum::initialize() {

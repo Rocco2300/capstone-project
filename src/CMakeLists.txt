@@ -12,6 +12,7 @@ add_library(src
         DFT.cpp
         Spectrum.cpp
         FFT.cpp
+        GPUSimulation.cpp
 )
 
 include_directories(${CMAKE_SOURCE_DIR}/include)

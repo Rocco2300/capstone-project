@@ -1,14 +1,11 @@
 #include "Camera.hpp"
-#include "DFT.hpp"
-#include "FFT.hpp"
 #include "Globals.hpp"
 #include "Input.hpp"
 #include "Noise.hpp"
 #include "Plane.hpp"
-#include "Program.hpp"
-#include "Shader.hpp"
-#include "Spectrum.hpp"
 #include "TextureManager.hpp"
+#include "Shader.hpp"
+#include "GPUSimulation.hpp"
 
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
@@ -79,24 +76,8 @@ int main() {
     texArray->setData(&initialData[0], NORMAL_INDEX);
     texArray->setData(&initialData[0], DISPLACEMENT_INDEX);
 
-    auto windSpeed     = 25.0f;
-    auto windDirection = glm::pi<float>() / 4.f;
-    auto wind          = glm::vec2(glm::cos(windDirection), glm::sin(windDirection)) * windSpeed;
-    SpectrumParameters params{};
-    params.a         = 4.0f;
-    params.patchSize = 1250.0f;
-    params.wind      = wind;
-
-    DFT dft(size);
-    FFT fft(size);
-    Spectrum spectrum(size, params);
-    spectrum.initialize();
-
-    Program textureMerger;
-    ComputeShader textureMergerShader;
-    textureMergerShader.load("../shaders/TextureMerger.comp");
-    textureMerger.attachShader(textureMergerShader);
-    textureMerger.validate();
+    GPUSimulation gpuSimulation(textureManager, size);
+    gpuSimulation.setAlgorithm(Algorithm::Gerstner);
 
     VertexShader vertexShader("../shaders/Ocean.vert");
     FragmentShader fragmentShader("../shaders/Ocean.frag");
@@ -129,18 +110,7 @@ int main() {
         float deltaTime = now - prev;
         prev            = now;
 
-        spectrum.update(now);
-        //dft.dispatchIDFT(DY_INDEX, HEIGHT_INDEX);
-        //dft.dispatchIDFT(DX_DZ_INDEX, DISPLACEMENT_INDEX);
-        //dft.dispatchIDFT(DYX_DYZ_INDEX, NORMAL_INDEX);
-        //dft.dispatchSines();
-        //dft.dispatchGerstner();
-        fft.dispatchIFFT(DY_INDEX, HEIGHT_INDEX);
-        fft.dispatchIFFT(DX_DZ_INDEX, DISPLACEMENT_INDEX);
-        fft.dispatchIFFT(DYX_DYZ_INDEX, NORMAL_INDEX);
-        textureMerger.use();
-        glDispatchCompute(size / THREAD_NUMBER, size / THREAD_NUMBER, 1);
-        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+        gpuSimulation.update(now);
 
         program.use();
         int width, height;
@@ -157,6 +127,25 @@ int main() {
         ImGui::NewFrame();
 
         ImGui::Begin("Debug");
+
+        int algo;
+        if (ImGui::InputInt("Algorithm", &algo)) {
+            algo %= 4;
+            switch (algo) {
+            case 0:
+                gpuSimulation.setAlgorithm(Algorithm::Sines);
+                break;
+            case 1:
+                gpuSimulation.setAlgorithm(Algorithm::Gerstner);
+                break;
+            case 2:
+                gpuSimulation.setAlgorithm(Algorithm::DFT);
+                break;
+            case 3:
+                gpuSimulation.setAlgorithm(Algorithm::FFT);
+                break;
+            }
+        }
 
         ImGui::Image(textureManager.get("normal"), {256, 256}, {0, 1}, {1, 0});
         ImGui::Image(textureManager.get("displacement"), {256, 256}, {0, 1}, {1, 0});

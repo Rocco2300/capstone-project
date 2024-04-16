@@ -32,7 +32,10 @@ private:
     Program m_timeDependentProgram;
 
 public:
-    Spectrum(int size, const SpectrumParameters& params);
+    Spectrum(int size);
+
+    void setSize(int size);
+    void setParameters(SpectrumParameters& params);
 
     void initialize();
     void update(double time);
