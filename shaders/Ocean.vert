@@ -10,7 +10,7 @@ uniform mat4 view;
 uniform mat4 model;
 uniform mat4 projection;
 
-out vec4 outNormal;
+out vec4 surfaceNormal;
 
 void main() {
     vec2 coords = position.xz * (1.0 / 0.25);
@@ -20,5 +20,5 @@ void main() {
     finalPos.y += displacement.y;
 
     gl_Position = projection * view * model * finalPos;
-    outNormal = imageLoad(normal, ivec2(coords));
+    surfaceNormal = imageLoad(normal, ivec2(coords));
 }

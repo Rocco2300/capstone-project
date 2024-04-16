@@ -98,8 +98,8 @@ int main() {
     textureMerger.attachShader(textureMergerShader);
     textureMerger.validate();
 
-    VertexShader vertexShader("../shaders/ocean_surface.vert");
-    FragmentShader fragmentShader("../shaders/ocean_surface.frag");
+    VertexShader vertexShader("../shaders/Ocean.vert");
+    FragmentShader fragmentShader("../shaders/Ocean.frag");
     Program program;
     program.attachShader(vertexShader);
     program.attachShader(fragmentShader);
