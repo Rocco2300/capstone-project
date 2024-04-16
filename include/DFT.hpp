@@ -7,12 +7,15 @@ private:
     int m_size;
 
     Program m_IDFT;
-    Program m_verticalIDFT;
-    Program m_horizontalIDFT;
+    Program m_sines;
+    Program m_gerstner;
 
 public:
     DFT(int size);
 
-    void dispatchIDFT();
     void setSize(int size);
+
+    void dispatchSines();
+    void dispatchGerstner();
+    void dispatchIDFT(int input, int output);
 };

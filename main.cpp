@@ -53,7 +53,7 @@ int main() {
         return -1;
     }
 
-    int size = 64;
+    int size = 256;
 
     Plane oceanPlane;
     oceanPlane.setSpacing(0.25f);
@@ -79,12 +79,12 @@ int main() {
     texArray->setData(&initialData[0], NORMAL_INDEX);
     texArray->setData(&initialData[0], DISPLACEMENT_INDEX);
 
-    auto windSpeed     = 10.5f;
+    auto windSpeed     = 25.0f;
     auto windDirection = glm::pi<float>() / 4.f;
     auto wind          = glm::vec2(glm::cos(windDirection), glm::sin(windDirection)) * windSpeed;
     SpectrumParameters params{};
     params.a         = 4.0f;
-    params.patchSize = 250.0f;
+    params.patchSize = 1250.0f;
     params.wind      = wind;
 
     DFT dft(size);
@@ -130,9 +130,14 @@ int main() {
         prev            = now;
 
         spectrum.update(now);
-        dft.dispatchIDFT();
-        //fft.dispatchIFFT(DY_INDEX);
-        //fft.dispatchIFFT(DYX_DYZ_INDEX);
+        //dft.dispatchIDFT(DY_INDEX, HEIGHT_INDEX);
+        //dft.dispatchIDFT(DX_DZ_INDEX, DISPLACEMENT_INDEX);
+        //dft.dispatchIDFT(DYX_DYZ_INDEX, NORMAL_INDEX);
+        //dft.dispatchSines();
+        //dft.dispatchGerstner();
+        fft.dispatchIFFT(DY_INDEX, HEIGHT_INDEX);
+        fft.dispatchIFFT(DX_DZ_INDEX, DISPLACEMENT_INDEX);
+        fft.dispatchIFFT(DYX_DYZ_INDEX, NORMAL_INDEX);
         textureMerger.use();
         glDispatchCompute(size / THREAD_NUMBER, size / THREAD_NUMBER, 1);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
