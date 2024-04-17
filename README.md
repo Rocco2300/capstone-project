@@ -1,7 +1,7 @@
 # Ocean Wave Simulation Performance Comparison
 
 ## Overview
-This project aims to compare the performance of different methods for simulating ocean waves from oceanographic spectra. Specifically, it focuses on comparing the Discrete Fourier Transform (DFT) and Fast Fourier Transform (FFT) methods. The oceanographic spectra used is TMA corrected JONSWAP, with the directional part interpolated between Tessendorf's Cosine Squared and Hasselmann's models.
+This project aims to compare the performance of different methods for simulating ocean waves from oceanographic spectra. Specifically, it focuses on comparing the Discrete Fourier Transform (DFT) and Fast Fourier Transform (FFT) methods. It is using the Phillips spectrum, even though it is not accurate to real world conditions it fits within the purposes of the work done here. 
 
 The project aims to compare the performance of the GPGPU versions, implemented using OpenGL compute shaders and CPU versions aswell. Additionally, performance metrics such as simulation time and computational efficiency will be analyzed with the help Python scripts.
 
