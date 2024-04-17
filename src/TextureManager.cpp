@@ -4,7 +4,7 @@
 
 #include "Assert.hpp"
 #include "Globals.hpp"
-#include "Noise.hpp"
+#include "Image.hpp"
 
 Texture& TextureManager::get(const std::string& name) {
     auto it = m_textures.find(name);

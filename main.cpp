@@ -1,11 +1,11 @@
 #include "Camera.hpp"
-#include "Globals.hpp"
-#include "Input.hpp"
-#include "Noise.hpp"
-#include "Plane.hpp"
-#include "TextureManager.hpp"
-#include "Shader.hpp"
 #include "GPUSimulation.hpp"
+#include "Globals.hpp"
+#include "Image.hpp"
+#include "Input.hpp"
+#include "Plane.hpp"
+#include "Shader.hpp"
+#include "TextureManager.hpp"
 
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
@@ -68,7 +68,7 @@ int main() {
     textureManager.insert("displacement", DISPLACEMENT_UNIT, size);
     textureManager.insert("normal", NORMAL_UNIT, size);
 
-    Noise noise(size, size);
+    NoiseImage noise(size, size);
     std::vector<float> initialData(4 * size * size, 0);
     auto* texArray = &textureManager.insert("buffers", BUFFERS_UNIT, size, 14);
     texArray->setData(noise.data(), NOISE_INDEX);

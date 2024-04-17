@@ -7,7 +7,7 @@ add_library(src
         Shader.cpp
         Input.cpp
         Texture.cpp
-        Noise.cpp
+        Image.cpp
         TextureManager.cpp
         DFT.cpp
         Spectrum.cpp
