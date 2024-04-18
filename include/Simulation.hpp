@@ -2,22 +2,21 @@
 
 #include "DFT.hpp"
 #include "FFT.hpp"
+#include "ResourceManager.hpp"
 #include "Spectrum.hpp"
-#include "TextureManager.hpp"
 
-enum class Algorithm {
-    Sines,
+enum class Algorithm : int {
+    Sines = 0,
     Gerstner,
     DFT,
-    FFT
+    FFT,
+    SlowGerstner,
+    SlowFFT
 };
 
 class Simulation {
 private:
     int m_size{};
-
-    Algorithm m_algorithm{};
-    TextureManager* m_textureManager{};
 
     DFT m_dft;
     FFT m_fft;
@@ -25,8 +24,10 @@ private:
     Spectrum m_spectrum;
     Program m_textureMerger;
 
+    Algorithm m_algorithm{};
+
 public:
-    Simulation(TextureManager& textureManager, int size);
+    Simulation(int size);
 
     void setAlgorithm(Algorithm algorithm);
 

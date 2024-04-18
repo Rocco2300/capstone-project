@@ -1,4 +1,4 @@
-#include "GPUSimulation.hpp"
+#include "Simulation.hpp"
 
 #include "Shader.hpp"
 #include "Globals.hpp"
@@ -7,20 +7,24 @@
 
 #include <glm/gtc/constants.hpp>
 
-GPUSimulation::GPUSimulation(TextureManager& textureManager, int size)
+Simulation::Simulation(int size)
     : m_size{size}
     , m_spectrum{size}
     , m_dft{size}
     , m_fft{size} {
 
-    m_textureManager = &textureManager;
+    std::vector<float> initialData(4 * size * size, 0);
+    auto* texArray = &ResourceManager::getTexture("buffers");
+    texArray->setData(&initialData[0], HEIGHT_INDEX);
+    texArray->setData(&initialData[0], NORMAL_INDEX);
+    texArray->setData(&initialData[0], DISPLACEMENT_INDEX);
 
-    auto windSpeed     = 25.0f;
+    auto windSpeed     = 8.0f;
     auto windDirection = glm::pi<float>() / 4.f;
     auto wind          = glm::vec2(glm::cos(windDirection), glm::sin(windDirection)) * windSpeed;
     SpectrumParameters params{};
-    params.a         = 4.0f;
-    params.patchSize = 1250.0f;
+    params.A         = 4.0f;
+    params.patchSize = 250.0f;
     params.wind      = wind;
 
     m_spectrum.setParameters(params);
@@ -32,11 +36,17 @@ GPUSimulation::GPUSimulation(TextureManager& textureManager, int size)
     m_textureMerger.validate();
 }
 
-void GPUSimulation::setAlgorithm(Algorithm algorithm) {
+void Simulation::setAlgorithm(Algorithm algorithm) {
     m_algorithm = algorithm;
+
+    if (algorithm == Algorithm::SlowGerstner || algorithm == Algorithm::SlowFFT) {
+        m_spectrum.setAccelerated(false);
+    } else {
+        m_spectrum.setAccelerated(true);
+    }
 }
 
-void GPUSimulation::update(float time) {
+void Simulation::update(float time) {
     m_spectrum.update(time);
 
     switch (m_algorithm) {
@@ -55,6 +65,9 @@ void GPUSimulation::update(float time) {
         m_fft.dispatchIFFT(DY_INDEX, HEIGHT_INDEX);
         m_fft.dispatchIFFT(DX_DZ_INDEX, DISPLACEMENT_INDEX);
         m_fft.dispatchIFFT(DYX_DYZ_INDEX, NORMAL_INDEX);
+        break;
+    case Algorithm::SlowGerstner:
+        m_dft.dispatchGerstnerCPU();
         break;
     }
 

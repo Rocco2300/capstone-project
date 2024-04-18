@@ -18,4 +18,6 @@ public:
     void dispatchSines();
     void dispatchGerstner();
     void dispatchIDFT(int input, int output);
+
+    void dispatchGerstnerCPU();
 };

@@ -3,6 +3,7 @@
 #include "Types.hpp"
 
 #include <vector>
+#include <string>
 
 struct Pixel {
     float r, g, b, a;
@@ -19,6 +20,12 @@ public:
     Image() = default;
     Image(uint16 width, uint16 height);
     virtual ~Image();
+
+    Image(Image&& other);
+    Image& operator=(Image&& other);
+
+    Image(const Image& other) = delete;
+    Image& operator=(const Image& other) = delete;
 
     Pixel& at(int index);
     Pixel& at(int x, int y);

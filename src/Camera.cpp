@@ -55,7 +55,7 @@ void Camera::update(float deltaTime) {
     if (Mouse::isButtonPressed(GLFW_MOUSE_BUTTON_RIGHT)) {
         Mouse::setCursorMode(GLFW_CURSOR_DISABLED);
 
-        // this is so that we don't get absurd delta when first pressing right click
+        // this is so that we don't getTexture absurd delta when first pressing right click
         auto mouseDelta = (!m_rotating) ? glm::vec2(0.f, 0.f) : Mouse::getPosition();
         m_yaw += mouseDelta.x * m_sensitivity * deltaTime;
         m_pitch += mouseDelta.y * m_sensitivity * deltaTime;

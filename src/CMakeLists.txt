@@ -8,11 +8,11 @@ add_library(src
         Input.cpp
         Texture.cpp
         Image.cpp
-        TextureManager.cpp
+        ResourceManager.cpp
         DFT.cpp
         Spectrum.cpp
         FFT.cpp
-        GPUSimulation.cpp
+        Simulation.cpp
 )
 
 include_directories(${CMAKE_SOURCE_DIR}/include)

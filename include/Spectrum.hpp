@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Image.hpp"
 #include "Program.hpp"
 
 struct JonswapParameters
@@ -15,7 +16,7 @@ struct JonswapParameters
 };
 
 struct PhillipsParameters {
-    float a;
+    float A;
     float patchSize;
     glm::vec2 wind;
 };
@@ -24,19 +25,31 @@ typedef PhillipsParameters SpectrumParameters;
 
 class Spectrum {
 private:
-    int m_size;
+    int m_size{};
+    bool m_accelerated{};
+
     uint32 m_paramsSSBO;
     SpectrumParameters m_params;
 
     Program m_initialProgram;
     Program m_timeDependentProgram;
 
+    NoiseImage m_noiseImage;
+
 public:
-    Spectrum(int size);
+    explicit Spectrum(int size);
 
     void setSize(int size);
+    void setAccelerated(bool accelerated);
     void setParameters(SpectrumParameters& params);
 
     void initialize();
-    void update(double time);
+    void update(float time);
+
+private:
+    float dispersion(float k);
+    float phillips(glm::vec2 k);
+    void computeInitialSpectrum();
+    void evolveCPUSpectrum(float time);
+    void evolveGPUSpectrum(float time);
 };

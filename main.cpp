@@ -1,11 +1,11 @@
 #include "Camera.hpp"
-#include "GPUSimulation.hpp"
 #include "Globals.hpp"
 #include "Image.hpp"
 #include "Input.hpp"
 #include "Plane.hpp"
+#include "ResourceManager.hpp"
 #include "Shader.hpp"
-#include "TextureManager.hpp"
+#include "Simulation.hpp"
 
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
@@ -64,20 +64,13 @@ int main() {
     camera.setSpeed(3.f);
     camera.setSensitivity(100.f);
 
-    TextureManager textureManager;
-    textureManager.insert("displacement", DISPLACEMENT_UNIT, size);
-    textureManager.insert("normal", NORMAL_UNIT, size);
+    ResourceManager::insertTexture("buffers", BUFFERS_UNIT, size, 14);
+    ResourceManager::insertTexture("displacement", DISPLACEMENT_UNIT, size);
+    ResourceManager::insertTexture("normal", NORMAL_UNIT, size);
+    ResourceManager::insertTexture("test", DEBUG_VIEW_UNIT, size);
 
-    NoiseImage noise(size, size);
-    std::vector<float> initialData(4 * size * size, 0);
-    auto* texArray = &textureManager.insert("buffers", BUFFERS_UNIT, size, 14);
-    texArray->setData(noise.data(), NOISE_INDEX);
-    texArray->setData(&initialData[0], HEIGHT_INDEX);
-    texArray->setData(&initialData[0], NORMAL_INDEX);
-    texArray->setData(&initialData[0], DISPLACEMENT_INDEX);
-
-    GPUSimulation gpuSimulation(textureManager, size);
-    gpuSimulation.setAlgorithm(Algorithm::Gerstner);
+    Simulation simulation(size);
+    simulation.setAlgorithm(Algorithm::Gerstner);
 
     VertexShader vertexShader("../shaders/Ocean.vert");
     FragmentShader fragmentShader("../shaders/Ocean.frag");
@@ -104,13 +97,14 @@ int main() {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 460");
 
+    int algo = 1;
     float prev = glfwGetTime();
     while (!glfwWindowShouldClose(window)) {
         float now       = glfwGetTime();
         float deltaTime = now - prev;
         prev            = now;
 
-        gpuSimulation.update(now);
+        simulation.update(now);
 
         program.use();
         int width, height;
@@ -128,27 +122,30 @@ int main() {
 
         ImGui::Begin("Debug");
 
-        int algo;
         if (ImGui::InputInt("Algorithm", &algo)) {
-            algo %= 4;
+            algo %= 5;
             switch (algo) {
             case 0:
-                gpuSimulation.setAlgorithm(Algorithm::Sines);
+                simulation.setAlgorithm(Algorithm::Sines);
                 break;
             case 1:
-                gpuSimulation.setAlgorithm(Algorithm::Gerstner);
+                simulation.setAlgorithm(Algorithm::Gerstner);
                 break;
             case 2:
-                gpuSimulation.setAlgorithm(Algorithm::DFT);
+                simulation.setAlgorithm(Algorithm::DFT);
                 break;
             case 3:
-                gpuSimulation.setAlgorithm(Algorithm::FFT);
+                simulation.setAlgorithm(Algorithm::FFT);
+                break;
+            case 4:
+                simulation.setAlgorithm(Algorithm::SlowGerstner);
                 break;
             }
         }
 
-        ImGui::Image(textureManager.get("normal"), {256, 256}, {0, 1}, {1, 0});
-        ImGui::Image(textureManager.get("displacement"), {256, 256}, {0, 1}, {1, 0});
+        ImGui::Image(ResourceManager::getTexture("test"), {256, 256}, {0, 1}, {1, 0});
+        ImGui::Image(ResourceManager::getTexture("normal"), {256, 256}, {0, 1}, {1, 0});
+        ImGui::Image(ResourceManager::getTexture("displacement"), {256, 256}, {0, 1}, {1, 0});
 
         ImGui::End();
         ImGui::Render();
