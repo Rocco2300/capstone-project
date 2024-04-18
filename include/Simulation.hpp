@@ -12,7 +12,7 @@ enum class Algorithm {
     FFT
 };
 
-class GPUSimulation {
+class Simulation {
 private:
     int m_size{};
 
@@ -26,7 +26,7 @@ private:
     Program m_textureMerger;
 
 public:
-    GPUSimulation(TextureManager& textureManager, int size);
+    Simulation(TextureManager& textureManager, int size);
 
     void setAlgorithm(Algorithm algorithm);
 

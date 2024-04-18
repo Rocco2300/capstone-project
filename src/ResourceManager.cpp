@@ -6,6 +6,8 @@
 #include "Globals.hpp"
 #include "Image.hpp"
 
+std::unordered_map<std::string, Texture> TextureManager::m_textures{};
+
 Texture& TextureManager::get(const std::string& name) {
     auto it = m_textures.find(name);
     massert(it != m_textures.end(), "Texture {} doesn't exist!", name);
@@ -18,7 +20,7 @@ void TextureManager::resize(int size, int depth) {
 }
 
 Texture& TextureManager::resize(const std::string& name, int size, int depth) {
-    auto& texture = this->get(name);
+    auto& texture = TextureManager::get(name);
     texture.setSize(size, size, depth);
     return texture;
 }
