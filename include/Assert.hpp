@@ -7,7 +7,7 @@
 #ifndef NDEBUG
 #define massert(expr, fmt, ...) massert_impl(#expr, expr, __FILE__, __LINE__, fmt, ##__VA_ARGS__)
 #else
-#define massert(expr, msg) ;
+#define massert(expr, fmt, ...);
 #endif
 
 template <typename... Args>
