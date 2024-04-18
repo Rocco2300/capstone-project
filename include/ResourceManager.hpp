@@ -12,6 +12,8 @@ private:
     static std::unordered_map<std::string, Texture> m_textures;
 
 public:
+    ResourceManager() = delete;
+
     static Image& getImage(const std::string& name);
     static Texture& getTexture(const std::string& name);
 
