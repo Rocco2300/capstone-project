@@ -1,4 +1,4 @@
-#include "TextureManager.hpp"
+#include "ResourceManager.hpp"
 
 #include <GL/gl3w.h>
 
@@ -6,30 +6,46 @@
 #include "Globals.hpp"
 #include "Image.hpp"
 
-std::unordered_map<std::string, Texture> TextureManager::m_textures{};
+std::unordered_map<std::string, Image> ResourceManager::m_images{};
+std::unordered_map<std::string, Texture> ResourceManager::m_textures{};
 
-Texture& TextureManager::get(const std::string& name) {
+Image& ResourceManager::getImage(const std::string& name) {
+    auto it = m_images.find(name);
+    massert(it != m_images.end(), "Image {} doesn't exist!", name);
+
+    return it->second;
+}
+
+Texture& ResourceManager::getTexture(const std::string& name) {
     auto it = m_textures.find(name);
     massert(it != m_textures.end(), "Texture {} doesn't exist!", name);
 
     return it->second;
 }
 
-void TextureManager::resize(int size, int depth) {
+void ResourceManager::resize(int size, int depth) {
     for (auto& [_, texture]: m_textures) { texture.setSize(size, size, depth); }
 }
 
-Texture& TextureManager::resize(const std::string& name, int size, int depth) {
-    auto& texture = TextureManager::get(name);
+Texture& ResourceManager::resize(const std::string& name, int size, int depth) {
+    auto& texture = ResourceManager::getTexture(name);
     texture.setSize(size, size, depth);
     return texture;
 }
 
-Texture& TextureManager::insert(const std::string& name,
-                                int binding,
-                                int size,
-                                int depth,
-                                bool dualChannel) {
+Image& ResourceManager::insertImage(const std::string& name, int size) {
+    auto [it, success] = m_images.try_emplace(name);
+    auto& image        = it->second;
+
+    image = Image(size, size);
+    return image;
+}
+
+Texture& ResourceManager::insertTexture(const std::string& name,
+                                        int binding,
+                                        int size,
+                                        int depth,
+                                        bool dualChannel) {
     auto [it, success] = m_textures.try_emplace(name);
     auto& texture      = it->second;
 
