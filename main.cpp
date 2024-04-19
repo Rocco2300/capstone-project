@@ -9,7 +9,6 @@
 
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
-#include <glm/gtc/constants.hpp>
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -103,7 +102,7 @@ int main() {
     double prev = glfwGetTime();
     while (!glfwWindowShouldClose(window)) {
         if (profiling) {
-            Profiler::beginProfiling("FFT", 2);
+            Profiler::beginProfiling("FFT", 60.0);
             profiling = false;
         }
 
@@ -132,7 +131,7 @@ int main() {
 
         ImGui::Begin("Debug");
 
-        if (ImGui::Button("Profile one frame")) {
+        if (ImGui::Button("Profile")) {
             profiling = true;
         }
 

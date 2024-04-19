@@ -20,12 +20,12 @@ Simulation::Simulation(int size)
     texArray->setData(&initialData[0], NORMAL_INDEX);
     texArray->setData(&initialData[0], DISPLACEMENT_INDEX);
 
-    auto windSpeed     = 16.0f;
+    auto windSpeed     = 25.0f;
     auto windDirection = glm::pi<float>() / 4.f;
     auto wind          = glm::vec2(glm::cos(windDirection), glm::sin(windDirection)) * windSpeed;
     SpectrumParameters params{};
     params.A         = 4.0f;
-    params.patchSize = 750.0f;
+    params.patchSize = 1750.0f;
     params.wind      = wind;
 
     m_spectrum.setParameters(params);

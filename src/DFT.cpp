@@ -40,15 +40,22 @@ void DFT::setSize(int size) {
 }
 
 void DFT::dispatchSines() {
-    m_sines.use();
+    Profiler::functionBegin("ComputeOceanSurface");
 
+    Profiler::queryBegin();
+    m_sines.use();
     m_sines.setUniform("direction", 0);
     glDispatchCompute(m_size / THREAD_NUMBER, m_size / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    Profiler::queryEnd();
 
+    Profiler::queryBegin();
     m_sines.setUniform("direction", 1);
     glDispatchCompute(m_size / THREAD_NUMBER, m_size / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    Profiler::queryEnd();
+
+    Profiler::functionEnd("ComputeOceanSurface");
 }
 
 void DFT::dispatchGerstner() {
@@ -71,17 +78,24 @@ void DFT::dispatchGerstner() {
 }
 
 void DFT::dispatchIDFT(int input, int output) {
+    Profiler::functionBegin("ComputeOceanSurface");
+
+    Profiler::queryBegin();
     m_IDFT.use();
     m_IDFT.setUniform("buffer0", input);
     m_IDFT.setUniform("buffer1", output);
-
     m_IDFT.setUniform("direction", 0);
     glDispatchCompute(m_size / THREAD_NUMBER, m_size / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    Profiler::queryEnd();
 
+    Profiler::queryBegin();
     m_IDFT.setUniform("direction", 1);
     glDispatchCompute(m_size / THREAD_NUMBER, m_size / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    Profiler::queryEnd();
+
+    Profiler::functionEnd("ComputeOceanSurface");
 }
 
 static glm::vec2 complexMul(glm::vec2 a, glm::vec2 b) {
