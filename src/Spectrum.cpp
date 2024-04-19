@@ -1,8 +1,9 @@
 #include "Spectrum.hpp"
 
-#include "Globals.hpp"
-#include "ResourceManager.hpp"
 #include "Shader.hpp"
+#include "Globals.hpp"
+#include "Profiler.hpp"
+#include "ResourceManager.hpp"
 
 #include "GL/gl3w.h"
 
@@ -169,8 +170,14 @@ void Spectrum::evolveCPUSpectrum(float time) {
 }
 
 void Spectrum::evolveGPUSpectrum(float time) {
+    Profiler::functionBegin("evolveGPUSpectrum");
+
+    Profiler::queryBegin();
     m_timeDependentProgram.setUniform("time", time);
     m_timeDependentProgram.use();
     glDispatchCompute(m_size / THREAD_NUMBER, m_size / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    Profiler::queryEnd();
+
+    Profiler::functionEnd("evolveGPUSpectrum");
 }

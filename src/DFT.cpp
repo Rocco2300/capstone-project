@@ -2,6 +2,7 @@
 
 #include "Shader.hpp"
 #include "Globals.hpp"
+#include "Profiler.hpp"
 #include "ResourceManager.hpp"
 
 #include <GL/gl3w.h>
@@ -51,15 +52,22 @@ void DFT::dispatchSines() {
 }
 
 void DFT::dispatchGerstner() {
-    m_gerstner.use();
+    Profiler::functionBegin("dispatchGerstner");
 
+    Profiler::queryBegin();
+    m_gerstner.use();
     m_gerstner.setUniform("direction", 0);
     glDispatchCompute(m_size / THREAD_NUMBER, m_size / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    Profiler::queryEnd();
 
+    Profiler::queryBegin();
     m_gerstner.setUniform("direction", 1);
     glDispatchCompute(m_size / THREAD_NUMBER, m_size / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    Profiler::queryEnd();
+
+    Profiler::functionEnd("dispatchGerstner");
 }
 
 void DFT::dispatchIDFT(int input, int output) {

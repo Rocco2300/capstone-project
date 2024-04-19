@@ -2,6 +2,7 @@
 
 #include "Shader.hpp"
 #include "Globals.hpp"
+#include "Profiler.hpp"
 
 #include <GL/gl3w.h>
 
@@ -47,6 +48,7 @@ void Simulation::setAlgorithm(Algorithm algorithm) {
 }
 
 void Simulation::update(float time) {
+    Profiler::functionBegin("Simulation::update");
     m_spectrum.update(time);
 
     switch (m_algorithm) {
@@ -71,7 +73,11 @@ void Simulation::update(float time) {
         break;
     }
 
+    Profiler::queryBegin();
     m_textureMerger.use();
     glDispatchCompute(m_size / THREAD_NUMBER, m_size / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    Profiler::queryEnd();
+
+    Profiler::functionEnd("Simulation::update");
 }

@@ -13,6 +13,7 @@ add_library(src
         Spectrum.cpp
         FFT.cpp
         Simulation.cpp
+        Profiler.cpp
 )
 
 include_directories(${CMAKE_SOURCE_DIR}/include)

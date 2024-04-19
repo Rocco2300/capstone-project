@@ -99,7 +99,6 @@ void FFT::dispatchIFFT(int input, int output) {
     m_copyProgram.use();
     m_copyProgram.setUniform("to", output);
     m_copyProgram.setUniform("from", in);
-
     glDispatchCompute(m_height / THREAD_NUMBER, m_height / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 }

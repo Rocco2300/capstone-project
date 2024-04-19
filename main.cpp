@@ -1,8 +1,8 @@
 #include "Camera.hpp"
 #include "Globals.hpp"
-#include "Image.hpp"
 #include "Input.hpp"
 #include "Plane.hpp"
+#include "Profiler.hpp"
 #include "ResourceManager.hpp"
 #include "Shader.hpp"
 #include "Simulation.hpp"
@@ -51,6 +51,7 @@ int main() {
     }
 
     int size = 256;
+    Profiler::initialize();
 
     Plane oceanPlane;
     oceanPlane.setSpacing(0.25f);
@@ -97,14 +98,23 @@ int main() {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 460");
 
-    int algo = 1;
-    float prev = glfwGetTime();
+    bool profiling{};
+    int algo    = 1;
+    double prev = glfwGetTime();
     while (!glfwWindowShouldClose(window)) {
-        float now       = glfwGetTime();
-        float deltaTime = now - prev;
-        prev            = now;
+        if (profiling) {
+            Profiler::beginProfiling(1);
+            profiling = false;
+        }
 
-        simulation.update(now);
+        double now       = glfwGetTime();
+        double deltaTime = now - prev;
+        prev             = now;
+
+        Profiler::frameBegin();
+
+        // TODO: use double everywhere for time
+        simulation.update(static_cast<float>(now));
 
         program.use();
         int width, height;
@@ -121,6 +131,10 @@ int main() {
         ImGui::NewFrame();
 
         ImGui::Begin("Debug");
+
+        if (ImGui::Button("Profile one frame")) {
+            profiling = true;
+        }
 
         if (ImGui::InputInt("Algorithm", &algo)) {
             algo %= 5;
@@ -150,16 +164,20 @@ int main() {
         ImGui::End();
         ImGui::Render();
 
+        Profiler::queryBegin("DrawCall");
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         oceanPlane.bind();
         glDrawElements(GL_TRIANGLES, oceanPlane.getIndices().size(), GL_UNSIGNED_INT, 0);
         oceanPlane.unbind();
+        Profiler::queryEnd("DrawCall");
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+        Profiler::frameEnd();
     }
 
     ImGui_ImplOpenGL3_Shutdown();
