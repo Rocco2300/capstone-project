@@ -52,7 +52,7 @@ void DFT::dispatchSines() {
 }
 
 void DFT::dispatchGerstner() {
-    Profiler::functionBegin("dispatchGerstner");
+    Profiler::functionBegin("ComputeOceanSurface");
 
     Profiler::queryBegin();
     m_gerstner.use();
@@ -67,7 +67,7 @@ void DFT::dispatchGerstner() {
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     Profiler::queryEnd();
 
-    Profiler::functionEnd("dispatchGerstner");
+    Profiler::functionEnd("ComputeOceanSurface");
 }
 
 void DFT::dispatchIDFT(int input, int output) {
@@ -89,6 +89,7 @@ static glm::vec2 complexMul(glm::vec2 a, glm::vec2 b) {
 }
 
 void DFT::dispatchGerstnerCPU() {
+    Profiler::functionBegin("ComputeOceanSurface");
     Image buffer0(m_size, m_size);
     Image buffer1(m_size, m_size);
 
@@ -159,7 +160,11 @@ void DFT::dispatchGerstnerCPU() {
         }
     }
 
+    Profiler::queryBegin();
     ResourceManager::getTexture("buffers").setData(dyImage.data(), HEIGHT_INDEX);
     ResourceManager::getTexture("buffers").setData(dx_dzImage.data(), DISPLACEMENT_INDEX);
     ResourceManager::getTexture("buffers").setData(dyx_dyzImage.data(), NORMAL_INDEX);
+    Profiler::queryEnd();
+
+    Profiler::functionEnd("ComputeOceanSurface");
 }

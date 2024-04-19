@@ -1,8 +1,8 @@
 #include "FFT.hpp"
 
-#include "Globals.hpp"
 #include "Shader.hpp"
-#include "Types.hpp"
+#include "Globals.hpp"
+#include "Profiler.hpp"
 
 #include <GL/gl3w.h>
 
@@ -62,7 +62,10 @@ FFT::FFT(int size) {
 }
 
 void FFT::dispatchIFFT(int input, int output) {
+    Profiler::functionBegin("ComputeOceanSurface");
+
     int pingpong = 0;
+    Profiler::queryBegin();
     m_ifftProgram.setUniform("buffer0", input);
     m_ifftProgram.setUniform("buffer1", BUFFER_INDEX);
     m_ifftProgram.setUniform("direction", 0);
@@ -74,7 +77,9 @@ void FFT::dispatchIFFT(int input, int output) {
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
         pingpong = !pingpong;
     }
+    Profiler::queryEnd();
 
+    Profiler::queryBegin();
     m_ifftProgram.setUniform("direction", 1);
     for (int i = 0; i < m_width; i++) {
         m_ifftProgram.setUniform("stage", i);
@@ -84,23 +89,31 @@ void FFT::dispatchIFFT(int input, int output) {
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
         pingpong = !pingpong;
     }
+    Profiler::queryEnd();
 
+    Profiler::queryBegin();
     m_invertAndPermuteProgram.use();
     m_invertAndPermuteProgram.setUniform("pingpong", pingpong);
     m_invertAndPermuteProgram.setUniform("buffer0", input);
     m_invertAndPermuteProgram.setUniform("buffer1", BUFFER_INDEX);
     glDispatchCompute(m_height / THREAD_NUMBER, m_height / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    Profiler::queryEnd();
 
     // final output is in buffer not in input
     // if doing multiple fft buffer will be reused
     // as such will delete previous work
     auto in = (pingpong == 1) ? BUFFER_INDEX : input;
+
+    Profiler::queryBegin();
     m_copyProgram.use();
     m_copyProgram.setUniform("to", output);
     m_copyProgram.setUniform("from", in);
     glDispatchCompute(m_height / THREAD_NUMBER, m_height / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    Profiler::queryEnd();
+
+    Profiler::functionEnd("ComputeOceanSurface");
 }
 
 void FFT::setSize(int size) {

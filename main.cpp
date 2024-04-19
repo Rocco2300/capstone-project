@@ -71,7 +71,7 @@ int main() {
     ResourceManager::insertTexture("test", DEBUG_VIEW_UNIT, size);
 
     Simulation simulation(size);
-    simulation.setAlgorithm(Algorithm::Gerstner);
+    simulation.setAlgorithm(Algorithm::FFT);
 
     VertexShader vertexShader("../shaders/Ocean.vert");
     FragmentShader fragmentShader("../shaders/Ocean.frag");
@@ -99,11 +99,11 @@ int main() {
     ImGui_ImplOpenGL3_Init("#version 460");
 
     bool profiling{};
-    int algo    = 1;
+    int algo    = 3;
     double prev = glfwGetTime();
     while (!glfwWindowShouldClose(window)) {
         if (profiling) {
-            Profiler::beginProfiling(1);
+            Profiler::beginProfiling("FFT", 50000);
             profiling = false;
         }
 
@@ -164,14 +164,14 @@ int main() {
         ImGui::End();
         ImGui::Render();
 
-        Profiler::queryBegin("DrawCall");
+        Profiler::queryBegin("DrawOceanSurface");
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         oceanPlane.bind();
         glDrawElements(GL_TRIANGLES, oceanPlane.getIndices().size(), GL_UNSIGNED_INT, 0);
         oceanPlane.unbind();
-        Profiler::queryEnd("DrawCall");
+        Profiler::queryEnd("DrawOceanSurface");
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);

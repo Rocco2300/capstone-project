@@ -133,6 +133,7 @@ static glm::vec2 complexMul(glm::vec2 a, glm::vec2 b) {
 }
 
 void Spectrum::evolveCPUSpectrum(float time) {
+    Profiler::functionBegin("EvolveOceanSpectrum");
     auto& wavedata        = ResourceManager::getImage("wavedata");
     auto& initialSpectrum = ResourceManager::getImage("initialSpectrum");
 
@@ -167,10 +168,11 @@ void Spectrum::evolveCPUSpectrum(float time) {
             dyx_dyz.g   = n.y;
         }
     }
+    Profiler::functionEnd("EvolveOceanSpectrum");
 }
 
 void Spectrum::evolveGPUSpectrum(float time) {
-    Profiler::functionBegin("evolveGPUSpectrum");
+    Profiler::functionBegin("EvolveOceanSpectrum");
 
     Profiler::queryBegin();
     m_timeDependentProgram.setUniform("time", time);
@@ -179,5 +181,5 @@ void Spectrum::evolveGPUSpectrum(float time) {
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     Profiler::queryEnd();
 
-    Profiler::functionEnd("evolveGPUSpectrum");
+    Profiler::functionEnd("EvolveOceanSpectrum");
 }

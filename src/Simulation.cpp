@@ -20,12 +20,12 @@ Simulation::Simulation(int size)
     texArray->setData(&initialData[0], NORMAL_INDEX);
     texArray->setData(&initialData[0], DISPLACEMENT_INDEX);
 
-    auto windSpeed     = 8.0f;
+    auto windSpeed     = 16.0f;
     auto windDirection = glm::pi<float>() / 4.f;
     auto wind          = glm::vec2(glm::cos(windDirection), glm::sin(windDirection)) * windSpeed;
     SpectrumParameters params{};
     params.A         = 4.0f;
-    params.patchSize = 250.0f;
+    params.patchSize = 750.0f;
     params.wind      = wind;
 
     m_spectrum.setParameters(params);
@@ -48,7 +48,6 @@ void Simulation::setAlgorithm(Algorithm algorithm) {
 }
 
 void Simulation::update(float time) {
-    Profiler::functionBegin("Simulation::update");
     m_spectrum.update(time);
 
     switch (m_algorithm) {
@@ -73,11 +72,7 @@ void Simulation::update(float time) {
         break;
     }
 
-    Profiler::queryBegin();
     m_textureMerger.use();
     glDispatchCompute(m_size / THREAD_NUMBER, m_size / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-    Profiler::queryEnd();
-
-    Profiler::functionEnd("Simulation::update");
 }

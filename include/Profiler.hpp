@@ -19,12 +19,13 @@ struct FrameNode {
     std::string name{};
 
     TimePoint start;
-    double cpuTime{};
-    double gpuTime{};
+    double elapsedTime{};
 
-    std::vector<FrameNode*> children{};
+    std::vector<std::unique_ptr<FrameNode>> children{};
 
     void print(int depth);
+    void add(FrameNode* frame);
+    void divide(int number);
 };
 
 struct BoundQuery {
@@ -34,12 +35,14 @@ struct BoundQuery {
 
 class Profiler {
 private:
-    static std::vector<FrameNode*> m_frames;
+    static std::string m_target;
 
     static std::vector<uint32> m_queryPool;
-    //static std::vector<ProfilerFrame> m_frames;
-    static std::queue<BoundQuery> m_boundQueries;
     static std::stack<FrameNode*> m_frameStack;
+    static std::queue<BoundQuery> m_boundQueries;
+    static std::vector<std::unique_ptr<FrameNode>> m_frames;
+    static std::vector<std::unique_ptr<FrameNode>> m_results;
+    static std::unordered_map<std::string, FrameNode*> m_computedFrames;
 
     static bool m_profiling;
     static bool m_initialized;
@@ -52,7 +55,7 @@ public:
     Profiler() = delete;
 
     static void initialize();
-    static void beginProfiling(int frames);
+    static void beginProfiling(const std::string& name, int frames);
 
     static void frameBegin();
     static void frameEnd();

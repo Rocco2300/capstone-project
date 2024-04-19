@@ -16,15 +16,35 @@ void FrameNode::print(int depth) {
     } else {
         std::cout << name << ": ";
     }
-    std::cout << "CPU " << cpuTime << "ms GPU " << gpuTime << "ms\n";
+    std::cout << elapsedTime << "ms\n";
 
     for (auto& child: children) { child->print(depth + 1); }
 }
 
+void FrameNode::add(FrameNode* frame) {
+    elapsedTime += frame->elapsedTime;
+
+    for (int i = 0; i < children.size(); i++) {
+        children[i]->add(frame->children[i].get());
+    }
+}
+
+void FrameNode::divide(int number) {
+    elapsedTime /= number;
+
+    for (int i = 0; i < children.size(); i++) {
+        children[i]->elapsedTime /= number;
+    }
+}
+
+std::string Profiler::m_target;
+
 std::vector<uint32> Profiler::m_queryPool;
-std::vector<FrameNode*> Profiler::m_frames;
-std::queue<BoundQuery> Profiler::m_boundQueries;
 std::stack<FrameNode*> Profiler::m_frameStack;
+std::queue<BoundQuery> Profiler::m_boundQueries;
+std::vector<std::unique_ptr<FrameNode>> Profiler::m_frames;
+std::vector<std::unique_ptr<FrameNode>> Profiler::m_results;
+std::unordered_map<std::string, FrameNode*> Profiler::m_computedFrames;
 
 bool Profiler::m_profiling{};
 bool Profiler::m_initialized{};
@@ -44,14 +64,17 @@ void Profiler::initialize() {
     glQueryCounter(dummyQueryID, GL_TIMESTAMP);
 }
 
-void Profiler::beginProfiling(int frames) {
+void Profiler::beginProfiling(const std::string& name, int frames) {
     massert(m_initialized == true, "Profiler not initialized before starting profiling!\n");
 
+    m_target           = name;
     m_profiling        = true;
     m_resultsAvailable = false;
 
     m_currentFrame  = 0;
     m_profileFrames = frames;
+
+    m_frames.clear();
 }
 
 void Profiler::frameBegin() {
@@ -64,7 +87,7 @@ void Profiler::frameBegin() {
     frame->start = timeStamp;
     frame->id    = m_currentFrame;
 
-    m_frames.push_back(frame);
+    m_frames.push_back(std::unique_ptr<FrameNode>(frame));
     m_frameStack.emplace(frame);
 }
 
@@ -80,7 +103,7 @@ void Profiler::frameEnd() {
                 glGetQueryObjectui64v(queryID, GL_QUERY_RESULT, &timer);
 
                 double elapsedTime = static_cast<double>(timer) / 1'000'000.0;
-                frameNode->gpuTime += elapsedTime;
+                frameNode->elapsedTime += elapsedTime;
 
                 m_queryPool.push_back(queryID);
                 m_boundQueries.pop();
@@ -89,7 +112,18 @@ void Profiler::frameEnd() {
 
         if (!m_profiling && m_boundQueries.empty()) {
             m_resultsAvailable = true;
-            for (const auto& frame: m_frames) { frame->print(0); }
+
+            auto resultFrame  = std::unique_ptr<FrameNode>(std::move(m_frames.back()));
+            resultFrame->name = m_target;
+            m_frames.pop_back();
+
+            for (const auto& frame: m_frames) {
+                resultFrame->add(frame.get());
+            }
+            resultFrame->divide(m_profileFrames);
+
+            m_frames.clear();
+            m_results.push_back(std::move(resultFrame));
         }
     }
 
@@ -99,10 +133,11 @@ void Profiler::frameEnd() {
 
     auto* frame = m_frameStack.top();
     std::chrono::duration<double, std::milli> time(timeStamp - frame->start);
-    frame->cpuTime += time.count();
+    frame->elapsedTime += time.count();
     m_frameStack.pop();
 
     m_currentFrame++;
+    m_computedFrames.clear();
     if (m_currentFrame == m_profileFrames) {
         m_profiling = false;
     }
@@ -114,12 +149,18 @@ void Profiler::functionBegin(const std::string& name) {
         return;
     }
 
-    auto* parent    = m_frameStack.top();
-    auto* function  = new FrameNode();
+    FrameNode* function;
+    auto* parent = m_frameStack.top();
+    if (m_computedFrames.count(name)) {
+        function = m_computedFrames[name];
+    } else {
+        function = new FrameNode();
+        parent->children.push_back(std::unique_ptr<FrameNode>(function));
+        m_computedFrames.emplace(name, function);
+    }
+
     function->start = timeStamp;
     function->name  = name;
-
-    parent->children.push_back(function);
     m_frameStack.emplace(function);
 }
 
@@ -134,7 +175,7 @@ void Profiler::functionEnd(const std::string& name) {
 
     auto* function = m_frameStack.top();
     std::chrono::duration<double, std::milli> time(timeStamp - function->start);
-    function->cpuTime += time.count();
+    function->elapsedTime += time.count();
     m_frameStack.pop();
 }
 
@@ -152,7 +193,7 @@ void Profiler::queryBegin(const std::string& name) {
         auto* parent   = m_frameStack.top();
         function       = new FrameNode();
         function->name = name;
-        parent->children.push_back(function);
+        parent->children.push_back(std::unique_ptr<FrameNode>(function));
         m_frameStack.emplace(function);
     } else {
         function = m_frameStack.top();
