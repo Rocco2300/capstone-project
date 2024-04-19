@@ -103,7 +103,7 @@ int main() {
     double prev = glfwGetTime();
     while (!glfwWindowShouldClose(window)) {
         if (profiling) {
-            Profiler::beginProfiling("FFT", 50000);
+            Profiler::beginProfiling("FFT", 2);
             profiling = false;
         }
 

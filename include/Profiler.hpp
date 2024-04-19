@@ -3,11 +3,11 @@
 #include "Types.hpp"
 
 #include <chrono>
-#include <string>
-#include <vector>
-#include <stack>
 #include <queue>
+#include <stack>
+#include <string>
 #include <unordered_map>
+#include <vector>
 
 // round( 80 / frame * 2, pow (2, n) )
 #define QUERY_COUNT 80
@@ -49,13 +49,15 @@ private:
     static bool m_resultsAvailable;
 
     static int m_currentFrame;
-    static int m_profileFrames;
+
+    static double m_elapsedTime;
+    static double m_profileTime;
 
 public:
     Profiler() = delete;
 
     static void initialize();
-    static void beginProfiling(const std::string& name, int frames);
+    static void beginProfiling(const std::string& name, double seconds);
 
     static void frameBegin();
     static void frameEnd();

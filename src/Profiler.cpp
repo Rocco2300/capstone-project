@@ -24,17 +24,13 @@ void FrameNode::print(int depth) {
 void FrameNode::add(FrameNode* frame) {
     elapsedTime += frame->elapsedTime;
 
-    for (int i = 0; i < children.size(); i++) {
-        children[i]->add(frame->children[i].get());
-    }
+    for (int i = 0; i < children.size(); i++) { children[i]->add(frame->children[i].get()); }
 }
 
 void FrameNode::divide(int number) {
     elapsedTime /= number;
 
-    for (int i = 0; i < children.size(); i++) {
-        children[i]->elapsedTime /= number;
-    }
+    for (int i = 0; i < children.size(); i++) { children[i]->elapsedTime /= number; }
 }
 
 std::string Profiler::m_target;
@@ -51,7 +47,9 @@ bool Profiler::m_initialized{};
 bool Profiler::m_resultsAvailable{};
 
 int Profiler::m_currentFrame{};
-int Profiler::m_profileFrames{};
+
+double Profiler::m_elapsedTime{};
+double Profiler::m_profileTime{};
 
 void Profiler::initialize() {
     m_initialized = true;
@@ -64,15 +62,16 @@ void Profiler::initialize() {
     glQueryCounter(dummyQueryID, GL_TIMESTAMP);
 }
 
-void Profiler::beginProfiling(const std::string& name, int frames) {
+void Profiler::beginProfiling(const std::string& name, double seconds) {
     massert(m_initialized == true, "Profiler not initialized before starting profiling!\n");
 
     m_target           = name;
     m_profiling        = true;
     m_resultsAvailable = false;
 
-    m_currentFrame  = 0;
-    m_profileFrames = frames;
+    m_currentFrame = 0;
+    m_elapsedTime  = 0.0;
+    m_profileTime  = seconds * 1000.0;
 
     m_frames.clear();
 }
@@ -117,10 +116,9 @@ void Profiler::frameEnd() {
             resultFrame->name = m_target;
             m_frames.pop_back();
 
-            for (const auto& frame: m_frames) {
-                resultFrame->add(frame.get());
-            }
-            resultFrame->divide(m_profileFrames);
+            for (const auto& frame: m_frames) { resultFrame->add(frame.get()); }
+            resultFrame->divide(m_currentFrame);
+            resultFrame->print(0);
 
             m_frames.clear();
             m_results.push_back(std::move(resultFrame));
@@ -134,11 +132,12 @@ void Profiler::frameEnd() {
     auto* frame = m_frameStack.top();
     std::chrono::duration<double, std::milli> time(timeStamp - frame->start);
     frame->elapsedTime += time.count();
+    m_elapsedTime += time.count();
     m_frameStack.pop();
 
     m_currentFrame++;
     m_computedFrames.clear();
-    if (m_currentFrame == m_profileFrames) {
+    if (m_elapsedTime >= m_profileTime) {
         m_profiling = false;
     }
 }
