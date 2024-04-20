@@ -20,6 +20,9 @@ public:
     Program();
     ~Program();
 
+    Program(const Program& other) = delete;
+    Program& operator=(const Program& other) = delete;
+
     uint32 get();
 
     void use();
