@@ -3,6 +3,7 @@
 #include <GL/gl3w.h>
 
 #include "Assert.hpp"
+#include "Shader.hpp"
 #include "Globals.hpp"
 #include "Image.hpp"
 
@@ -42,6 +43,36 @@ Image& ResourceManager::insertImage(const std::string& name, int size) {
 
     image = Image(size, size);
     return image;
+}
+
+Program& ResourceManager::insertProgram(const std::string& name, const std::string& path) {
+    massert(m_programs.find(name) == m_programs.end(), "Cannot insert duplicate program {}", name);
+
+    auto [it, success] = m_programs.try_emplace(name);
+    auto& program      = it->second;
+
+    ComputeShader shader(path);
+    program.attachShader(shader);
+    program.validate();
+
+    return program;
+}
+
+Program& ResourceManager::insertProgram(const std::string& name,
+                                        const std::string& vertPath,
+                                        const std::string& fragPath) {
+    massert(m_programs.find(name) == m_programs.end(), "Cannot insert duplicate program {}", name);
+
+    auto [it, success] = m_programs.try_emplace(name);
+    auto& program      = it->second;
+
+    VertexShader vertexShader(vertPath);
+    FragmentShader fragmentShader(fragPath);
+    program.attachShader(vertexShader);
+    program.attachShader(fragmentShader);
+    program.validate();
+
+    return program;
 }
 
 Texture& ResourceManager::insertTexture(const std::string& name,
