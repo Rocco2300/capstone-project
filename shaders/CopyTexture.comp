@@ -3,12 +3,19 @@
 layout(local_size_x = THREAD_NUMBER, local_size_y = THREAD_NUMBER, local_size_z = 1) in;
 
 layout(rgba32f, binding = BUFFERS_UNIT) uniform image2DArray buffers;
+layout(rgba32f, binding = DEBUG_VIEW_UNIT) uniform image2D debugView;
 
 layout(location = 0) uniform int to;
 layout(location = 1) uniform int from;
+layout(location = 2) uniform int toDebugView;
 
 void main() {
     ivec2 id = ivec2(gl_GlobalInvocationID.xy);
     vec4 data = imageLoad(buffers, ivec3(id, from));
-    imageStore(buffers, ivec3(id, to), data);
+
+    if (toDebugView == 1) {
+        imageStore(debugView, id, data);
+    } else {
+        imageStore(buffers, ivec3(id, to), data);
+    }
 }

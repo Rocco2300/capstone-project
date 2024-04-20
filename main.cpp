@@ -110,7 +110,6 @@ int main() {
         // TODO: use double everywhere for time
         simulation.update(static_cast<float>(now));
 
-        program.use();
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
         glViewport(0, 0, width, height);
@@ -151,7 +150,7 @@ int main() {
             }
         }
 
-        ImGui::Image(ResourceManager::getTexture("test"), {256, 256}, {0, 1}, {1, 0});
+        ImGui::Image(ResourceManager::getDebugTexture(H0K_INDEX), {256, 256}, {0, 1}, {1, 0});
         ImGui::Image(ResourceManager::getTexture("normal"), {256, 256}, {0, 1}, {1, 0});
         ImGui::Image(ResourceManager::getTexture("displacement"), {256, 256}, {0, 1}, {1, 0});
 
@@ -159,6 +158,8 @@ int main() {
         ImGui::Render();
 
         Profiler::queryBegin("DrawOceanSurface");
+        program.use();
+
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

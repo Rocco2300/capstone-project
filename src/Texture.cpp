@@ -24,6 +24,8 @@ Texture::operator ImTextureID() const { return reinterpret_cast<ImTextureID>(m_i
 
 int Texture::target() { return m_target; }
 
+glm::vec3 Texture::size() { return {m_width, m_height, m_depth}; }
+
 void Texture::create() {
     m_generated = true;
 

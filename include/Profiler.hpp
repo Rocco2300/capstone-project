@@ -9,7 +9,6 @@
 #include <unordered_map>
 #include <vector>
 
-// round( 80 / frame * 2, pow (2, n) )
 #define QUERY_COUNT 80
 
 using TimePoint = std::chrono::time_point<std::chrono::high_resolution_clock>;

@@ -4,6 +4,8 @@
 
 #include <imgui.h>
 
+#include <glm/glm.hpp>
+
 class Texture {
 private:
     uint32 m_id{};
@@ -29,6 +31,7 @@ public:
     operator ImTextureID() const;
 
     int target();
+    glm::vec3 size();
 
     void create();
     void setData(void* data, int index = 0);

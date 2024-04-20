@@ -82,6 +82,20 @@ Program& ResourceManager::insertProgram(const std::string& name,
     return program;
 }
 
+Texture& ResourceManager::getDebugTexture(int index) {
+    auto& debugView = getTexture("test");
+    auto& copyProgram = getProgram("copyTexture");
+    auto size = debugView.size();
+
+    copyProgram.setUniform("from", index);
+    copyProgram.setUniform("toDebugView", 1);
+    copyProgram.use();
+    glDispatchCompute(size.x / THREAD_NUMBER, size.y / THREAD_NUMBER, 1);
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+    return debugView;
+}
+
 Texture& ResourceManager::insertTexture(const std::string& name,
                                         int binding,
                                         int size,
