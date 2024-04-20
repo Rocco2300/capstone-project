@@ -1,14 +1,14 @@
 #pragma once
 
-#include "Program.hpp"
+class Program;
 
 class DFT {
 private:
     int m_size;
 
-    Program m_IDFT;
-    Program m_sines;
-    Program m_gerstner;
+    Program* m_IDFT;
+    Program* m_sines;
+    Program* m_gerstner;
 
 public:
     DFT(int size);

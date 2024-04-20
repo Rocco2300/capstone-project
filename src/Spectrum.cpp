@@ -1,6 +1,5 @@
 #include "Spectrum.hpp"
 
-#include "Shader.hpp"
 #include "Globals.hpp"
 #include "Profiler.hpp"
 #include "ResourceManager.hpp"
@@ -23,24 +22,14 @@ Spectrum::Spectrum(int size) {
     auto* texArray = &ResourceManager::getTexture("buffers");
     texArray->setData(m_noiseImage.data(), NOISE_INDEX);
 
-    ComputeShader spectrumShader;
-    spectrumShader.load("../shaders/PhillipsSpectrum.comp");
-    m_initialProgram.attachShader(spectrumShader);
-    m_initialProgram.validate();
-    m_initialProgram.use();
-    m_initialProgram.setUniform("size", m_size);
-
-    ComputeShader timeDependentShader;
-    timeDependentShader.load("../shaders/TimeDependentSpectrum.comp");
-    m_timeDependentProgram.attachShader(timeDependentShader);
-    m_timeDependentProgram.validate();
+    m_initialProgram = &ResourceManager::getProgram("initialSpectrum");
+    m_timeDependentProgram = &ResourceManager::getProgram("timeDependentSpectrum");
+    m_initialProgram->setUniform("size", m_size);
 }
 
 void Spectrum::setSize(int size) {
     m_size = size;
-    m_initialProgram.setUniform("size", m_size);
-
-    initialize();
+    m_initialProgram->setUniform("size", m_size);
 }
 
 void Spectrum::setAccelerated(bool accelerated) { m_accelerated = accelerated; }
@@ -54,12 +43,11 @@ void Spectrum::setParameters(SpectrumParameters& params) {
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
 
-void Spectrum::initialize() {
-    m_initialProgram.setUniform("conjugate", 0);
+    m_initialProgram->setUniform("conjugate", 0);
     glDispatchCompute(m_size / THREAD_NUMBER, m_size / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-    m_initialProgram.setUniform("conjugate", 1);
+    m_initialProgram->setUniform("conjugate", 1);
     glDispatchCompute(m_size / THREAD_NUMBER, m_size / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
@@ -175,8 +163,8 @@ void Spectrum::evolveGPUSpectrum(float time) {
     Profiler::functionBegin("EvolveOceanSpectrum");
 
     Profiler::queryBegin();
-    m_timeDependentProgram.setUniform("time", time);
-    m_timeDependentProgram.use();
+    m_timeDependentProgram->setUniform("time", time);
+    m_timeDependentProgram->use();
     glDispatchCompute(m_size / THREAD_NUMBER, m_size / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     Profiler::queryEnd();

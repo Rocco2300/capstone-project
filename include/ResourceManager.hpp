@@ -7,8 +7,8 @@
 #include <string>
 #include <unordered_map>
 
-class Image;
-class Texture;
+void loadShaders();
+void loadTextures();
 
 class ResourceManager {
 private:
@@ -18,7 +18,6 @@ private:
 
 public:
     ResourceManager() = delete;
-
 
     static void resize(int size, int depth = 1);
     static Texture& resize(const std::string& name, int size, int depth = 1);

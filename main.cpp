@@ -49,6 +49,8 @@ int main() {
         return -1;
     }
 
+    loadShaders();
+
     int size = 256;
     Profiler::initialize();
 
@@ -72,19 +74,12 @@ int main() {
     Simulation simulation(size);
     simulation.setAlgorithm(Algorithm::FFT);
 
-    VertexShader vertexShader("../shaders/Ocean.vert");
-    FragmentShader fragmentShader("../shaders/Ocean.frag");
-    Program program;
-    program.attachShader(vertexShader);
-    program.attachShader(fragmentShader);
-    program.validate();
-    program.use();
-
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glCullFace(GL_BACK);
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
 
+    auto& program = ResourceManager::getProgram("ocean");
     program.setUniform("view", camera.getView());
     program.setUniform("model", oceanPlane.getTransform());
     program.setUniform("projection", camera.getProjection());

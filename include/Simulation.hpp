@@ -2,8 +2,9 @@
 
 #include "DFT.hpp"
 #include "FFT.hpp"
-#include "ResourceManager.hpp"
 #include "Spectrum.hpp"
+
+class Program;
 
 enum class Algorithm : int {
     Sines = 0,
@@ -22,7 +23,7 @@ private:
     FFT m_fft;
 
     Spectrum m_spectrum;
-    Program m_textureMerger;
+    Program* m_textureMerger;
 
     Algorithm m_algorithm{};
 

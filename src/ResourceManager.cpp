@@ -3,9 +3,9 @@
 #include <GL/gl3w.h>
 
 #include "Assert.hpp"
-#include "Shader.hpp"
 #include "Globals.hpp"
 #include "Image.hpp"
+#include "Shader.hpp"
 
 std::unordered_map<std::string, Image> ResourceManager::m_images{};
 std::unordered_map<std::string, Program> ResourceManager::m_programs{};
@@ -43,6 +43,13 @@ Image& ResourceManager::insertImage(const std::string& name, int size) {
 
     image = Image(size, size);
     return image;
+}
+
+Program& ResourceManager::getProgram(const std::string& name) {
+    auto it = m_programs.find(name);
+    massert(it != m_programs.end(), "Program {} doesn't exist!", name);
+
+    return it->second;
 }
 
 Program& ResourceManager::insertProgram(const std::string& name, const std::string& path) {
@@ -99,4 +106,20 @@ Texture& ResourceManager::insertTexture(const std::string& name,
     glBindTexture(texture.target(), 0);
 
     return texture;
+}
+
+void loadShaders() {
+    // clang-format off
+    ResourceManager::insertProgram("initialSpectrum", "../shaders/PhillipsSpectrum.comp");
+    ResourceManager::insertProgram("timeDependentSpectrum", "../shaders/TimeDependentSpectrum.comp");
+    ResourceManager::insertProgram("sines", "../shaders/Sines.comp");
+    ResourceManager::insertProgram("gerstner", "../shaders/Gerstner.comp");
+    ResourceManager::insertProgram("idft", "../shaders/IDFT.comp");
+    ResourceManager::insertProgram("ifft", "../shaders/IFFT.comp");
+    ResourceManager::insertProgram("butterfly", "../shaders/ButterflyTexture.comp");
+    ResourceManager::insertProgram("invert", "../shaders/InvertAndPermute.comp");
+    ResourceManager::insertProgram("textureMerger", "../shaders/TextureMerger.comp");
+    ResourceManager::insertProgram("copyTexture", "../shaders/CopyTexture.comp");
+    ResourceManager::insertProgram("ocean", "../shaders/Ocean.vert", "../shaders/Ocean.frag");
+    // clang-format on
 }

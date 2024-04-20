@@ -1,7 +1,10 @@
 #pragma once
 
 #include "Image.hpp"
-#include "Program.hpp"
+
+#include <glm/glm.hpp>
+
+class Program;
 
 struct JonswapParameters
 {
@@ -31,8 +34,8 @@ private:
     uint32 m_paramsSSBO;
     SpectrumParameters m_params;
 
-    Program m_initialProgram;
-    Program m_timeDependentProgram;
+    Program* m_initialProgram;
+    Program* m_timeDependentProgram;
 
     NoiseImage m_noiseImage;
 

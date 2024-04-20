@@ -1,12 +1,10 @@
 #include "Simulation.hpp"
 
-#include "Shader.hpp"
 #include "Globals.hpp"
 #include "Profiler.hpp"
+#include "ResourceManager.hpp"
 
 #include <GL/gl3w.h>
-
-#include <glm/gtc/constants.hpp>
 
 Simulation::Simulation(int size)
     : m_size{size}
@@ -20,21 +18,7 @@ Simulation::Simulation(int size)
     texArray->setData(&initialData[0], NORMAL_INDEX);
     texArray->setData(&initialData[0], DISPLACEMENT_INDEX);
 
-    auto windSpeed     = 25.0f;
-    auto windDirection = glm::pi<float>() / 4.f;
-    auto wind          = glm::vec2(glm::cos(windDirection), glm::sin(windDirection)) * windSpeed;
-    SpectrumParameters params{};
-    params.A         = 4.0f;
-    params.patchSize = 1750.0f;
-    params.wind      = wind;
-
-    m_spectrum.setParameters(params);
-    m_spectrum.initialize();
-
-    ComputeShader textureMergerShader;
-    textureMergerShader.load("../shaders/TextureMerger.comp");
-    m_textureMerger.attachShader(textureMergerShader);
-    m_textureMerger.validate();
+    m_textureMerger = &ResourceManager::getProgram("textureMerger");
 }
 
 void Simulation::setAlgorithm(Algorithm algorithm) {
@@ -72,7 +56,7 @@ void Simulation::update(float time) {
         break;
     }
 
-    m_textureMerger.use();
+    m_textureMerger->use();
     glDispatchCompute(m_size / THREAD_NUMBER, m_size / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 }
