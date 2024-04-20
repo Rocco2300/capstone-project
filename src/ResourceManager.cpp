@@ -7,6 +7,7 @@
 #include "Image.hpp"
 
 std::unordered_map<std::string, Image> ResourceManager::m_images{};
+std::unordered_map<std::string, Program> ResourceManager::m_programs{};
 std::unordered_map<std::string, Texture> ResourceManager::m_textures{};
 
 Image& ResourceManager::getImage(const std::string& name) {
@@ -34,6 +35,8 @@ Texture& ResourceManager::resize(const std::string& name, int size, int depth) {
 }
 
 Image& ResourceManager::insertImage(const std::string& name, int size) {
+    massert(m_images.find(name) == m_images.end(), "Cannot insert duplicate image {}", name);
+
     auto [it, success] = m_images.try_emplace(name);
     auto& image        = it->second;
 
@@ -46,6 +49,8 @@ Texture& ResourceManager::insertTexture(const std::string& name,
                                         int size,
                                         int depth,
                                         bool dualChannel) {
+    massert(m_textures.find(name) == m_textures.end(), "Cannot insert duplicate texture {}", name);
+
     auto [it, success] = m_textures.try_emplace(name);
     auto& texture      = it->second;
 
