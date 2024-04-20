@@ -56,13 +56,13 @@ void FFT::dispatchIFFT(int input, int output) {
 
     int pingpong = 0;
     Profiler::queryBegin();
+    m_ifftProgram->use();
     m_ifftProgram->setUniform("buffer0", input);
     m_ifftProgram->setUniform("buffer1", BUFFER_INDEX);
     m_ifftProgram->setUniform("direction", 0);
     for (int i = 0; i < m_width; i++) {
         m_ifftProgram->setUniform("stage", i);
         m_ifftProgram->setUniform("pingpong", pingpong);
-        m_ifftProgram->use();
         glDispatchCompute(m_height / THREAD_NUMBER, m_height / THREAD_NUMBER, 1);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
         pingpong = !pingpong;
@@ -70,11 +70,11 @@ void FFT::dispatchIFFT(int input, int output) {
     Profiler::queryEnd();
 
     Profiler::queryBegin();
+    m_ifftProgram->use();
     m_ifftProgram->setUniform("direction", 1);
     for (int i = 0; i < m_width; i++) {
         m_ifftProgram->setUniform("stage", i);
         m_ifftProgram->setUniform("pingpong", pingpong);
-        m_ifftProgram->use();
         glDispatchCompute(m_height / THREAD_NUMBER, m_height / THREAD_NUMBER, 1);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
         pingpong = !pingpong;

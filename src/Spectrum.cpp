@@ -43,6 +43,7 @@ void Spectrum::setParameters(SpectrumParameters& params) {
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
 
+    m_initialProgram->use();
     m_initialProgram->setUniform("conjugate", 0);
     glDispatchCompute(m_size / THREAD_NUMBER, m_size / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
