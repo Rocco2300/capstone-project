@@ -32,5 +32,6 @@ public:
 
     void setUniform(std::string_view name, int value);
     void setUniform(std::string_view name, double value);
+    void setUniform(std::string_view name, glm::vec4 value);
     void setUniform(std::string_view name, glm::mat4 value);
 };
