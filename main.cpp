@@ -122,8 +122,6 @@ int main() {
                 oceanPlane.generate(size, size);
                 program.setUniform("spacing", spacing);
 
-                auto planeSize = oceanPlane.getSize();
-                std::cout << planeSize.x << ' ' << planeSize.y << '\n';
                 ResourceManager::resize(size);
                 simulation.setSize(size);
 
@@ -206,7 +204,6 @@ int main() {
             auto windDir = windDirection * glm::pi<float>() / 180.0f;
             auto wind    = glm::vec2(glm::cos(windDirection), glm::sin(windDirection)) * windSpeed;
             spectrumParams.wind = wind;
-            std::cout << "Here\n";
         }
         if (ImGui::InputFloat("Wind direction", &windDirection, 0.0f, 0.0f, "%.1f")) {
             auto windDir = windDirection * glm::pi<float>() / 180.0f;
