@@ -241,6 +241,7 @@ int main() {
 
         ImGui::End();
 
+#ifndef NDEBUG
         ImGui::Begin("Debug");
 
         ImGui::Image(ResourceManager::getDebugTexture(BUTTERFLY_INDEX), {256, 256}, {0, 1}, {1, 0});
@@ -248,6 +249,7 @@ int main() {
         ImGui::Image(ResourceManager::getTexture("displacement"), {256, 256}, {0, 1}, {1, 0});
 
         ImGui::End();
+#endif
         ImGui::Render();
 
         Profiler::queryBegin("DrawOceanSurface");
