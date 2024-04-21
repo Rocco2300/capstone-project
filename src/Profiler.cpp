@@ -51,8 +51,14 @@ int Profiler::m_currentFrame{};
 double Profiler::m_elapsedTime{};
 double Profiler::m_profileTime{};
 
+bool Profiler::profiling() { return m_profiling; }
+
+bool Profiler::resultsAvailable() { return m_resultsAvailable; }
+
 void Profiler::initialize() {
+    m_profiling = false;
     m_initialized = true;
+    m_resultsAvailable = true;
     m_queryPool.resize(QUERY_COUNT);
 
     glGenQueries(QUERY_COUNT, &m_queryPool[0]);

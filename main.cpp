@@ -220,7 +220,9 @@ int main() {
         }
 
         if (ImGui::Button("Profile")) {
-            profiling = true;
+            if (!Profiler::profiling() && Profiler::resultsAvailable()) {
+                profiling = true;
+            }
         }
 
         ImGui::End();

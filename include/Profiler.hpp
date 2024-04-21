@@ -55,6 +55,9 @@ private:
 public:
     Profiler() = delete;
 
+    static bool profiling();
+    static bool resultsAvailable();
+
     static void initialize();
     static void beginProfiling(const std::string& name, double seconds);
 
