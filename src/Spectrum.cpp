@@ -11,21 +11,29 @@
 const float g = 9.81;
 
 Spectrum::Spectrum(int size) {
-    m_size       = size;
-    m_noiseImage = NoiseImage(m_size, m_size);
+    m_size = size;
+
     ResourceManager::insertImage("dy", size);
     ResourceManager::insertImage("dx_dz", size);
     ResourceManager::insertImage("dyx_dyz", size);
     ResourceManager::insertImage("wavedata", size);
     ResourceManager::insertImage("initialSpectrum", size);
 
-    auto* texArray = &ResourceManager::getTexture("buffers");
-    texArray->setData(m_noiseImage.data(), NOISE_INDEX);
+    auto windSpeed     = 25.0f;
+    auto windDirection = glm::pi<float>() / 4.f;
+    auto wind          = glm::vec2(glm::cos(windDirection), glm::sin(windDirection)) * windSpeed;
+    m_params.A         = 4.0f;
+    m_params.patchSize = 1750.0f;
+    m_params.wind      = wind;
 
-    m_initialProgram = &ResourceManager::getProgram("initialSpectrum");
+    glGenBuffers(1, &m_paramsSSBO);
+
+    m_initialProgram       = &ResourceManager::getProgram("initialSpectrum");
     m_timeDependentProgram = &ResourceManager::getProgram("timeDependentSpectrum");
     m_initialProgram->setUniform("size", m_size);
 }
+
+SpectrumParameters& Spectrum::params() { return m_params; }
 
 void Spectrum::setSize(int size) {
     m_size = size;
@@ -34,25 +42,28 @@ void Spectrum::setSize(int size) {
 
 void Spectrum::setAccelerated(bool accelerated) { m_accelerated = accelerated; }
 
-void Spectrum::setParameters(SpectrumParameters& params) {
-    m_params = params;
-    glGenBuffers(1, &m_paramsSSBO);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_paramsSSBO);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(params), &params, GL_STATIC_READ);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, PARAMS_BINDING, m_paramsSSBO);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-}
+void Spectrum::initialize() {
+    if (m_accelerated) {
+        m_noiseImage   = NoiseImage(m_size, m_size);
+        auto* texArray = &ResourceManager::getTexture("buffers");
+        texArray->setData(m_noiseImage.data(), NOISE_INDEX);
 
-    m_initialProgram->use();
-    m_initialProgram->setUniform("conjugate", 0);
-    glDispatchCompute(m_size / THREAD_NUMBER, m_size / THREAD_NUMBER, 1);
-    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_paramsSSBO);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(m_params), &m_params, GL_STATIC_READ);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, PARAMS_BINDING, m_paramsSSBO);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
-    m_initialProgram->setUniform("conjugate", 1);
-    glDispatchCompute(m_size / THREAD_NUMBER, m_size / THREAD_NUMBER, 1);
-    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+        m_initialProgram->use();
+        m_initialProgram->setUniform("conjugate", 0);
+        glDispatchCompute(m_size / THREAD_NUMBER, m_size / THREAD_NUMBER, 1);
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-    computeInitialSpectrum();
+        m_initialProgram->setUniform("conjugate", 1);
+        glDispatchCompute(m_size / THREAD_NUMBER, m_size / THREAD_NUMBER, 1);
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    } else {
+        computeInitialSpectrum();
+    }
 }
 
 void Spectrum::update(float time) {

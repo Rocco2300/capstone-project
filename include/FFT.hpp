@@ -1,11 +1,15 @@
 #pragma once
 
+#include "Types.hpp"
+
 class Program;
 
 class FFT {
 private:
     int m_width;
     int m_height;
+
+    uint32 m_ssbo;
 
     Program* m_copyProgram;
     Program* m_ifftProgram;

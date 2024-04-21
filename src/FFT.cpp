@@ -9,6 +9,7 @@
 #include <glm/gtx/integer.hpp>
 
 #include <memory>
+#include <iostream>
 
 std::unique_ptr<uint32[]> computeReversals(int size) {
     int width  = glm::log2(size);
@@ -32,17 +33,16 @@ FFT::FFT(int size) {
     m_height = size;
 
     auto reversal = computeReversals(size);
-    unsigned int ssbo;
-    glGenBuffers(1, &ssbo);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+    glGenBuffers(1, &m_ssbo);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_ssbo);
     glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(uint32) * size, reversal.get(), GL_STATIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, REVERSED_BINDING, ssbo);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, REVERSED_BINDING, m_ssbo);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
     m_butterflyProgram = &ResourceManager::getProgram("butterfly");
     m_butterflyProgram->setUniform("size", m_height);
     m_butterflyProgram->use();
-    glDispatchCompute(m_width, m_height / 8, 1);
+    glDispatchCompute(m_width, m_height / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
     m_ifftProgram = &ResourceManager::getProgram("ifft");
@@ -113,4 +113,14 @@ void FFT::setSize(int size) {
 
     m_butterflyProgram->setUniform("size", m_height);
     m_invertAndPermuteProgram->setUniform("size", size);
+
+    auto reversal = computeReversals(size);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_ssbo);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(uint32) * size, reversal.get(), GL_STATIC_DRAW);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, REVERSED_BINDING, m_ssbo);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+    m_butterflyProgram->use();
+    glDispatchCompute(m_width, m_height / THREAD_NUMBER, 1);
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 }

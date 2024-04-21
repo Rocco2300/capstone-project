@@ -11,14 +11,31 @@ Simulation::Simulation(int size)
     , m_spectrum{size}
     , m_dft{size}
     , m_fft{size} {
+    m_size = size;
 
-    std::vector<float> initialData(4 * size * size, 0);
+    std::vector<float> initialData(4 * m_size * m_size, 0);
     auto* texArray = &ResourceManager::getTexture("buffers");
     texArray->setData(&initialData[0], HEIGHT_INDEX);
     texArray->setData(&initialData[0], NORMAL_INDEX);
     texArray->setData(&initialData[0], DISPLACEMENT_INDEX);
 
     m_textureMerger = &ResourceManager::getProgram("textureMerger");
+}
+
+SpectrumParameters& Simulation::params() { return m_spectrum.params(); }
+
+void Simulation::setSize(int size) {
+    m_size = size;
+
+    std::vector<float> initialData(4 * m_size * m_size, 0);
+    auto* texArray = &ResourceManager::getTexture("buffers");
+    texArray->setData(&initialData[0], HEIGHT_INDEX);
+    texArray->setData(&initialData[0], NORMAL_INDEX);
+    texArray->setData(&initialData[0], DISPLACEMENT_INDEX);
+
+    m_dft.setSize(m_size);
+    m_fft.setSize(m_size);
+    m_spectrum.setSize(m_size);
 }
 
 void Simulation::setAlgorithm(Algorithm algorithm) {
@@ -29,6 +46,10 @@ void Simulation::setAlgorithm(Algorithm algorithm) {
     } else {
         m_spectrum.setAccelerated(true);
     }
+}
+
+void Simulation::initialize() {
+    m_spectrum.initialize();
 }
 
 void Simulation::update(float time) {

@@ -42,6 +42,8 @@ private:
 public:
     explicit Spectrum(int size);
 
+    SpectrumParameters& params();
+
     void setSize(int size);
     void setAccelerated(bool accelerated);
     void setParameters(SpectrumParameters& params);

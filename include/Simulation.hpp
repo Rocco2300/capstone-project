@@ -30,7 +30,11 @@ private:
 public:
     Simulation(int size);
 
+    SpectrumParameters& params();
+
+    void setSize(int size);
     void setAlgorithm(Algorithm algorithm);
 
+    void initialize();
     void update(float time);
 };

@@ -10,10 +10,12 @@ uniform mat4 view;
 uniform mat4 model;
 uniform mat4 projection;
 
+uniform double spacing;
+
 out vec4 surfaceNormal;
 
 void main() {
-    vec2 coords = position.xz * (1.0 / 0.25);
+    vec2 coords = position.xz * (1.0 / float(spacing));
     vec3 displacement = imageLoad(displacement, ivec2(coords)).rgb;
     vec4 finalPos = position;
     finalPos.xz -= displacement.xz;
