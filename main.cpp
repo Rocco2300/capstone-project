@@ -156,6 +156,7 @@ int main() {
         ImGui::NewFrame();
 
         ImGui::Begin("Settings");
+        ImGui::SeparatorText("Ocean settings");
         ImGui::SeparatorText("Simulation Parameters");
         auto textInputFlags = ImGuiInputTextFlags_EnterReturnsTrue;
 
@@ -196,6 +197,7 @@ int main() {
         }
         ImGui::PopItemWidth();
 
+        ImGui::Dummy({100.f, 10.f});
         ImGui::SeparatorText("Spectrum Parameters");
 
         ImGui::PushItemWidth(100.f);
@@ -217,10 +219,24 @@ int main() {
             shouldReinitialize = true;
         }
 
+        ImGui::Dummy({100.f, 40.f});
+        ImGui::SeparatorText("Profiling");
+        ImGui::PushItemWidth(100.f);
+        float a;
+        auto b = std::make_unique<char[]>(32);
+        ImGui::InputFloat("Profile time", &a, 0.0f, 0.0f, "%.1f");
+        ImGui::Text("Save location");
+        ImGui::PopItemWidth();
+        ImGui::PushItemWidth(220.f);
+        ImGui::InputText("##", b.get(), 32);
+        ImGui::PopItemWidth();
         if (ImGui::Button("Profile")) {
             if (!Profiler::profiling() && Profiler::resultsAvailable()) {
                 profiling = true;
             }
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Benchmark")) {
         }
 
         ImGui::End();
