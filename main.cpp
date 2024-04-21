@@ -149,6 +149,7 @@ int main() {
         camera.update(deltaTime);
 
         program.setUniform("view", camera.getView());
+        program.setUniform("cameraPosition", glm::vec4(camera.getPosition(), 1.f));
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();

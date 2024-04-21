@@ -9,10 +9,13 @@ layout(rgba32f, binding = NORMAL_UNIT) uniform image2D normal;
 uniform mat4 view;
 uniform mat4 model;
 uniform mat4 projection;
+uniform vec4 cameraPosition;
 
 uniform double spacing;
 
+out vec4 viewPosition;
 out vec4 surfaceNormal;
+out vec4 fragmentPosition;
 
 void main() {
     vec2 coords = position.xz * (1.0 / float(spacing));
@@ -22,5 +25,8 @@ void main() {
     finalPos.y += displacement.y;
 
     gl_Position = projection * view * model * finalPos;
+
+    viewPosition = cameraPosition;
     surfaceNormal = imageLoad(normal, ivec2(coords));
+    fragmentPosition = model * finalPos;
 }
