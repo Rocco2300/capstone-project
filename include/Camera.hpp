@@ -26,6 +26,7 @@ public:
     Camera() = default;
 
     glm::mat4 getView();
+    glm::vec3 getPosition();
     glm::mat4 getProjection();
 
     void setSpeed(float speed);
