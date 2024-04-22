@@ -44,25 +44,9 @@ void Spectrum::setAccelerated(bool accelerated) { m_accelerated = accelerated; }
 
 void Spectrum::initialize() {
     if (m_accelerated) {
-        m_noiseImage   = NoiseImage(m_size, m_size);
-        auto* texArray = &ResourceManager::getTexture("buffers");
-        texArray->setData(m_noiseImage.data(), NOISE_INDEX);
-
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_paramsSSBO);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(m_params), &m_params, GL_STATIC_READ);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, PARAMS_BINDING, m_paramsSSBO);
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-
-        m_initialProgram->use();
-        m_initialProgram->setUniform("conjugate", 0);
-        glDispatchCompute(m_size / THREAD_NUMBER, m_size / THREAD_NUMBER, 1);
-        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-
-        m_initialProgram->setUniform("conjugate", 1);
-        glDispatchCompute(m_size / THREAD_NUMBER, m_size / THREAD_NUMBER, 1);
-        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+        computeInitialGPUSpectrum();
     } else {
-        computeInitialSpectrum();
+        computeInitialCPUSpectrum();
     }
 }
 
@@ -94,7 +78,40 @@ float Spectrum::phillips(glm::vec2 k) {
            (kw * kw) * glm::exp(-kLength * kLength * l * l);
 }
 
-void Spectrum::computeInitialSpectrum() {
+void Spectrum::computeInitialGPUSpectrum() {
+    Profiler::functionBegin("GenerateOceanSpectrum");
+
+    m_noiseImage   = NoiseImage(m_size, m_size);
+    auto* texArray = &ResourceManager::getTexture("buffers");
+
+    Profiler::queryBegin();
+    texArray->setData(m_noiseImage.data(), NOISE_INDEX);
+    Profiler::queryEnd();
+
+    Profiler::queryBegin();
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_paramsSSBO);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(m_params), &m_params, GL_STATIC_READ);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, PARAMS_BINDING, m_paramsSSBO);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+    Profiler::queryEnd();
+
+    Profiler::queryBegin();
+    m_initialProgram->use();
+    m_initialProgram->setUniform("conjugate", 0);
+    glDispatchCompute(m_size / THREAD_NUMBER, m_size / THREAD_NUMBER, 1);
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    Profiler::queryEnd();
+
+    Profiler::queryBegin();
+    m_initialProgram->setUniform("conjugate", 1);
+    glDispatchCompute(m_size / THREAD_NUMBER, m_size / THREAD_NUMBER, 1);
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    Profiler::queryEnd();
+
+    Profiler::functionEnd("GenerateOceanSpectrum");
+}
+
+void Spectrum::computeInitialCPUSpectrum() {
     Image temp(m_size, m_size);
     auto& wavedata        = ResourceManager::getImage("wavedata");
     auto& initialSpectrum = ResourceManager::getImage("initialSpectrum");

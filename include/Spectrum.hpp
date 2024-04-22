@@ -54,7 +54,10 @@ public:
 private:
     float dispersion(float k);
     float phillips(glm::vec2 k);
-    void computeInitialSpectrum();
+
+    void computeInitialCPUSpectrum();
     void evolveCPUSpectrum(float time);
+
+    void computeInitialGPUSpectrum();
     void evolveGPUSpectrum(float time);
 };
