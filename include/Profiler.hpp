@@ -20,6 +20,11 @@ struct ProfiledFunction {
     double elapsedTime{};
 };
 
+struct ProfilerResult {
+    double frametime;
+    std::unordered_map<std::string, ProfiledFunction> functions;
+};
+
 struct BoundQuery {
     uint32 queryID;
     ProfiledFunction* function;
@@ -37,6 +42,7 @@ private:
     static std::queue<BoundQuery> m_boundQueries;
     static std::stack<std::string> m_functionStack;
     static std::unordered_map<std::string, ProfiledFunction> m_functions;
+    static std::unordered_map<std::string, ProfilerResult> m_results;
 
     static bool m_profiling;
     static bool m_initialized;
@@ -62,6 +68,6 @@ public:
     static void queryBegin(const std::string& name = "");
     static void queryEnd(const std::string& name = "");
 
-    //static void printResults();
-    //static void printResult(std::string_view name);
+    static void printResults();
+    static void printResult(const std::string& name);
 };

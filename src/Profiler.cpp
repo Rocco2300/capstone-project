@@ -16,6 +16,7 @@ std::vector<uint32> Profiler::m_queryPool;
 std::queue<BoundQuery> Profiler::m_boundQueries;
 std::stack<std::string> Profiler::m_functionStack;
 std::unordered_map<std::string, ProfiledFunction> Profiler::m_functions;
+std::unordered_map<std::string, ProfilerResult> Profiler::m_results;
 
 bool Profiler::m_profiling{};
 bool Profiler::m_initialized{};
@@ -102,10 +103,12 @@ void Profiler::frameEnd() {
                 function.elapsedTime /= function.callCount;
             }
 
-            fmt::print("{}: {:.3f} ms\n", m_target, m_frameTime);
-            for (auto& [name, function]: m_functions) {
-                fmt::print("\t{}: {:.3f} ms\n", name, function.elapsedTime);
+            auto [it, success] = m_results.try_emplace(m_target, m_frameTime, m_functions);
+            if (!success) {
+                it->second = {m_frameTime, m_functions};
             }
+
+            printResults();
         }
     }
 
@@ -181,26 +184,24 @@ void Profiler::queryEnd(const std::string& name) {
     glEndQuery(GL_TIME_ELAPSED);
 }
 
-//void Profiler::printResults() {
-//    std::unordered_set<std::string> seen;
-//    for (auto it = m_results.rbegin(); it != m_results.rend(); it++) {
-//        const auto& frameNode = *it;
-//        if (seen.count(frameNode->name)) {
-//            continue;
-//        }
-//
-//        frameNode->print(0);
-//        seen.emplace(frameNode->name);
-//    }
-//}
-//
-//void Profiler::printResult(std::string_view name) {
-//    auto it = std::find_if(m_results.rbegin(), m_results.rend(), [name](const auto& el) {
-//        return el->name == name;
-//    });
-//
-//    if (it != m_results.rend()) {
-//        auto& frameNode = *it;
-//        frameNode->print(0);
-//    }
-//}
+void Profiler::printResults() {
+    for (const auto& [profileName, results]: m_results) {
+        fmt::print("{}: {:.3f} ms\n", profileName, results.frametime);
+        for (const auto& [functionName, function]: results.functions) {
+            fmt::print("\t{}: {:.3f} ms\n", functionName, function.elapsedTime);
+        }
+    }
+}
+
+void Profiler::printResult(const std::string& name) {
+    auto it = m_results.find(name);
+    if (it == m_results.end()) {
+        return;
+    }
+
+    auto& [profileName, results] = *it;
+    fmt::print("{}: {:.3f} ms\n", profileName, results.frametime);
+    for (const auto& [functionName, function]: results.functions) {
+        fmt::print("\t{}: {:.3f} ms\n", functionName, function.elapsedTime);
+    }
+}

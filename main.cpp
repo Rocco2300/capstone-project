@@ -225,7 +225,7 @@ int main() {
         ImGui::PopItemWidth();
         if (ImGui::Button("Profile")) {
             if (!Profiler::profiling() && Profiler::resultsAvailable()) {
-                Profiler::beginProfiling(algorithms[algo], 1.0);
+                Profiler::beginProfiling(algorithms[algo], 0.0125);
             }
         }
         ImGui::SameLine();
