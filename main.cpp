@@ -101,7 +101,6 @@ int main() {
     ImGui_ImplOpenGL3_Init("#version 460");
 
     int algo                = 3;
-    bool profiling          = false;
     bool shouldResize       = false;
     bool shouldReinitialize = false;
 
@@ -111,10 +110,11 @@ int main() {
 
     double prev = glfwGetTime();
     while (!glfwWindowShouldClose(window)) {
-        if (profiling) {
-            Profiler::beginProfiling(algorithms[algo], 1.0);
-            profiling = false;
-        }
+        double now       = glfwGetTime();
+        double deltaTime = now - prev;
+        prev             = now;
+
+        Profiler::frameBegin();
 
         if (shouldReinitialize) {
             if (shouldResize) {
@@ -131,12 +131,6 @@ int main() {
             simulation.initialize();
             shouldReinitialize = false;
         }
-
-        double now       = glfwGetTime();
-        double deltaTime = now - prev;
-        prev             = now;
-
-        Profiler::frameBegin();
 
         // TODO: use double everywhere for time
         simulation.update(static_cast<float>(now));
@@ -231,7 +225,7 @@ int main() {
         ImGui::PopItemWidth();
         if (ImGui::Button("Profile")) {
             if (!Profiler::profiling() && Profiler::resultsAvailable()) {
-                profiling = true;
+                Profiler::beginProfiling(algorithms[algo], 1.0);
             }
         }
         ImGui::SameLine();

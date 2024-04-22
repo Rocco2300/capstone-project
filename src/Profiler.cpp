@@ -44,6 +44,7 @@ std::unordered_map<std::string, FrameNode*> Profiler::m_computedFrames;
 bool Profiler::m_profiling{};
 bool Profiler::m_initialized{};
 bool Profiler::m_resultsAvailable{};
+bool Profiler::m_shouldStartProfiling{};
 
 int Profiler::m_currentFrame{};
 
@@ -55,9 +56,10 @@ bool Profiler::profiling() { return m_profiling; }
 bool Profiler::resultsAvailable() { return m_resultsAvailable; }
 
 void Profiler::initialize() {
-    m_profiling = false;
-    m_initialized = true;
-    m_resultsAvailable = true;
+    m_profiling            = false;
+    m_initialized          = true;
+    m_resultsAvailable     = true;
+    m_shouldStartProfiling = false;
     m_queryPool.resize(QUERY_COUNT);
 
     glGenQueries(QUERY_COUNT, &m_queryPool[0]);
@@ -69,10 +71,14 @@ void Profiler::initialize() {
 
 void Profiler::beginProfiling(const std::string& name, double seconds) {
     massert(m_initialized == true, "Profiler not initialized before starting profiling!\n");
+    if (m_profiling || m_shouldStartProfiling) {
+        return;
+    }
 
-    m_target           = name;
-    m_profiling        = true;
-    m_resultsAvailable = false;
+    m_target               = name;
+    m_profiling            = false;
+    m_resultsAvailable     = false;
+    m_shouldStartProfiling = true;
 
     m_currentFrame = 0;
     m_elapsedTime  = 0.0;
@@ -83,6 +89,11 @@ void Profiler::beginProfiling(const std::string& name, double seconds) {
 
 void Profiler::frameBegin() {
     auto timeStamp = std::chrono::high_resolution_clock::now();
+    if (m_shouldStartProfiling) {
+        m_profiling            = true;
+        m_shouldStartProfiling = false;
+    }
+
     if (!m_initialized || !m_profiling) {
         return;
     }
@@ -142,7 +153,7 @@ void Profiler::frameEnd() {
 
     m_currentFrame++;
     m_computedFrames.clear();
-    if (m_elapsedTime >= m_profileTime) {
+    if (m_elapsedTime >= m_profileTime || frame->elapsedTime >= 33.0) {
         m_profiling = false;
     }
 }
@@ -233,9 +244,8 @@ void Profiler::printResults() {
 }
 
 void Profiler::printResult(std::string_view name) {
-    auto it = std::find_if(m_results.rbegin(), m_results.rend(), [name](const auto& el) {
-        return el->name == name;
-    });
+    auto it = std::find_if(m_results.rbegin(), m_results.rend(),
+                           [name](const auto& el) { return el->name == name; });
 
     if (it != m_results.rend()) {
         auto& frameNode = *it;

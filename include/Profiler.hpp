@@ -46,6 +46,7 @@ private:
     static bool m_profiling;
     static bool m_initialized;
     static bool m_resultsAvailable;
+    static bool m_shouldStartProfiling;
 
     static int m_currentFrame;
 
