@@ -15,7 +15,7 @@ void FrameNode::print(int depth) {
     } else {
         fmt::print("{}: ", name);
     }
-    fmt::print("{}ms\n", elapsedTime);
+    fmt::print("{:.3f}ms\n", elapsedTime);
 
     for (auto& child: children) { child->print(depth + 1); }
 }
@@ -123,10 +123,10 @@ void Profiler::frameEnd() {
 
             for (const auto& frame: m_frames) { resultFrame->add(frame.get()); }
             resultFrame->divide(m_currentFrame);
-            resultFrame->print(0);
 
             m_frames.clear();
             m_results.push_back(std::move(resultFrame));
+            printResults();
         }
     }
 
@@ -216,5 +216,29 @@ void Profiler::queryEnd(const std::string& name) {
                 "Ending profiling of different query.\nExpected: {}\nGot: {}\n",
                 m_frameStack.top()->name, name);
         m_frameStack.pop();
+    }
+}
+
+void Profiler::printResults() {
+    std::unordered_set<std::string> seen;
+    for (auto it = m_results.rbegin(); it != m_results.rend(); it++) {
+        const auto& frameNode = *it;
+        if (seen.count(frameNode->name)) {
+            continue;
+        }
+
+        frameNode->print(0);
+        seen.emplace(frameNode->name);
+    }
+}
+
+void Profiler::printResult(std::string_view name) {
+    auto it = std::find_if(m_results.rbegin(), m_results.rend(), [name](const auto& el) {
+        return el->name == name;
+    });
+
+    if (it != m_results.rend()) {
+        auto& frameNode = *it;
+        frameNode->print(0);
     }
 }

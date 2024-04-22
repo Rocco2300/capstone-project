@@ -67,4 +67,7 @@ public:
     static void functionEnd(const std::string& name);
     static void queryBegin(const std::string& name = "");
     static void queryEnd(const std::string& name = "");
+
+    static void printResults();
+    static void printResult(std::string_view name);
 };
