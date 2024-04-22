@@ -4,8 +4,6 @@
 
 #include "GL/gl3w.h"
 
-#include <iostream>
-
 Texture::Texture() {
     m_width  = 1024;
     m_height = 1024;

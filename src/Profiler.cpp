@@ -4,19 +4,18 @@
 
 #include <GL/gl3w.h>
 
-#include <iomanip>
 #include <thread>
 #include <unordered_set>
 
 void FrameNode::print(int depth) {
-    for (int i = 0; i < depth; i++) { std::cout << '\t'; }
+    for (int i = 0; i < depth; i++) { fmt::print("\t"); }
 
     if (name.empty()) {
-        std::cout << "Frame #" << id << ": ";
+        fmt::print("Frame #{}: ", id);
     } else {
-        std::cout << name << ": ";
+        fmt::print("{}: ", name);
     }
-    std::cout << elapsedTime << "ms\n";
+    fmt::print("{}ms\n", elapsedTime);
 
     for (auto& child: children) { child->print(depth + 1); }
 }

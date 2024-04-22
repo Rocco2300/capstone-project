@@ -3,8 +3,9 @@
 
 #include <GL/gl3w.h>
 
+#include <fmt/core.h>
+
 #include <fstream>
-#include <iostream>
 #include <sstream>
 
 static int shaderTypetoGLenum(Shader::Type type) {
@@ -61,7 +62,7 @@ void Shader::compile() {
     if (len > 1) {
         char buffer[len + 1];
         glGetShaderInfoLog(m_id, len + 1, nullptr, buffer);
-        std::cerr << buffer << '\n';
+        fmt::print(stderr, "{}", static_cast<std::string_view>(buffer));
     }
 
     int success{};
@@ -78,7 +79,7 @@ void Shader::load(const std::string& filePath) {
     std::ifstream in(filePath);
 
     if (in.fail()) {
-        std::cerr << "Error: Cannot open file " << filePath << '\n';
+        fmt::print("Error: Cannot open file {}.\n", filePath);
         return;
     }
 

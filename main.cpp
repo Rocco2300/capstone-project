@@ -16,17 +16,17 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
-#include <iostream>
+#include <fmt/core.h>
 
 static void errorCallback(int error, const char* description) {
-    std::cerr << "Error: " << description << '\n';
+    fmt::print("Error: {}", description);
 }
 
 const char* algorithms[] = {"Sines", "Gerstner", "DFT", "FFT", "Slow Gerstner", "Slow FFT"};
 
 int main() {
     if (!glfwInit()) {
-        std::cerr << "GLFW initialization failed.\n";
+        fmt::print("GLFW initialization failed.\n");
         glfwTerminate();
         return -1;
     }
@@ -35,7 +35,7 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     GLFWwindow* window = glfwCreateWindow(1280, 720, "Capstone", nullptr, nullptr);
     if (!window) {
-        std::cerr << "Window creation failed.\n";
+        fmt::print("Window creation failed.\n");
         glfwTerminate();
         return -1;
     }
@@ -48,7 +48,7 @@ int main() {
     Mouse::setWindow(window);
 
     if (gl3wInit()) {
-        std::cerr << "Error: failed to initialize gl3w.\n";
+        fmt::print("Error: failed to initialize gl3w.\n");
         glfwTerminate();
         return -1;
     }
@@ -189,7 +189,6 @@ int main() {
 
             size    = glm::pow(2, sizeLog2);
             spacing = 64.f / size;
-            std::cout << spacing << '\n';
             if (size != prevSize) {
                 shouldResize = true;
                 prevSize     = size;

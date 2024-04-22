@@ -2,16 +2,14 @@
 
 #include <fmt/core.h>
 
-#include <iostream>
-
 #ifndef NDEBUG
 #define massert(expr, fmt, ...) massert_impl(#expr, expr, __FILE__, __LINE__, fmt, ##__VA_ARGS__)
 #else
-#define massert(expr, fmt, ...);
+#define massert(expr, fmt, ...) ;
 #endif
 
 template <typename... Args>
-void massert_impl(std::string_view expression_str,
+void massert_impl(std::string_view expressionStr,
                   bool expression,
                   std::string_view file,
                   int line,
@@ -25,8 +23,7 @@ void massert_impl(std::string_view expression_str,
     if (sizeof...(Args) > 0) {// If we have args
         message = fmt::vformat(fmt, fmt::make_format_args(args...));
     }
-    std::cerr << "Assert failed at " << file << ':' << line << '\n'
-              << "Expected: " << expression_str << '\n'
-              << message << '\n';
+    fmt::print(stderr, "Assert failed at {}: {}\nExpected: {}\n{}", file, line, expressionStr,
+               message);
     abort();
 }

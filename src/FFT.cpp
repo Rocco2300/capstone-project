@@ -9,7 +9,6 @@
 #include <glm/gtx/integer.hpp>
 
 #include <memory>
-#include <iostream>
 
 std::unique_ptr<uint32[]> computeReversals(int size) {
     int width  = glm::log2(size);
