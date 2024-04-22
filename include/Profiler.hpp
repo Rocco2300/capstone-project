@@ -13,23 +13,16 @@
 
 using TimePoint = std::chrono::time_point<std::chrono::high_resolution_clock>;
 
-struct FrameNode {
-    int id{};
-    std::string name{};
+struct ProfiledFunction {
+    std::string name;
 
     TimePoint start;
     double elapsedTime{};
-
-    std::vector<std::unique_ptr<FrameNode>> children{};
-
-    void print(int depth);
-    void add(FrameNode* frame);
-    void divide(int number);
 };
 
 struct BoundQuery {
     uint32 queryID;
-    FrameNode* frameNode;
+    ProfiledFunction* function;
 };
 
 class Profiler {
@@ -37,11 +30,13 @@ private:
     static std::string m_target;
 
     static std::vector<uint32> m_queryPool;
-    static std::stack<FrameNode*> m_frameStack;
     static std::queue<BoundQuery> m_boundQueries;
-    static std::vector<std::unique_ptr<FrameNode>> m_frames;
-    static std::vector<std::unique_ptr<FrameNode>> m_results;
-    static std::unordered_map<std::string, FrameNode*> m_computedFrames;
+    static std::vector<ProfiledFunction> m_functions;
+    static std::stack<ProfiledFunction*> m_frameStack;
+
+    //static std::vector<std::unique_ptr<FrameNode>> m_frames;
+    //static std::vector<std::unique_ptr<FrameNode>> m_results;
+    //static std::unordered_map<std::string, FrameNode*> m_computedFrames;
 
     static bool m_profiling;
     static bool m_initialized;
