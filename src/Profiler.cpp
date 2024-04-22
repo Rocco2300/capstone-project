@@ -61,6 +61,7 @@ void Profiler::beginProfiling(const std::string& name, double seconds) {
     m_elapsedTime  = 0.0;
     m_profileTime  = seconds * 1000.0;
 
+    m_functions.clear();
     //m_frames.clear();
 }
 
