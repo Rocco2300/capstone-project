@@ -17,9 +17,6 @@ std::queue<BoundQuery> Profiler::m_boundQueries;
 std::stack<std::string> Profiler::m_functionStack;
 std::unordered_map<std::string, ProfiledFunction> Profiler::m_functions;
 
-//std::vector<std::unique_ptr<FrameNode>> Profiler::m_results;
-//std::unordered_map<std::string, FrameNode*> Profiler::m_computedFrames;
-
 bool Profiler::m_profiling{};
 bool Profiler::m_initialized{};
 bool Profiler::m_resultsAvailable{};
@@ -62,7 +59,6 @@ void Profiler::beginProfiling(const std::string& name, double seconds) {
     m_profileTime  = seconds * 1000.0;
 
     m_functions.clear();
-    //m_frames.clear();
 }
 
 void Profiler::frameBegin() {
@@ -77,13 +73,6 @@ void Profiler::frameBegin() {
     }
 
     m_frameStart = timeStamp;
-
-    //auto* frame  = new FrameNode();
-    //frame->start = timeStamp;
-    //frame->id    = m_currentFrame;
-
-    //m_frames.push_back(std::unique_ptr<FrameNode>(frame));
-    //m_frameStack.emplace(frame);
 }
 
 void Profiler::frameEnd() {
@@ -127,15 +116,8 @@ void Profiler::frameEnd() {
     std::chrono::duration<double, std::milli> time(timeStamp - m_frameStart);
     m_frameTime += time.count();
 
-    //auto* frame = m_frameStack.top();
-    //std::chrono::duration<double, std::milli> time(timeStamp - frame->start);
-    //frame->elapsedTime += time.count();
-    //m_elapsedTime += time.count();
-    //m_frameStack.pop();
-
     m_currentFrame++;
     m_elapsedTime += time.count();
-    //m_computedFrames.clear();
     if (m_elapsedTime >= m_profileTime || m_elapsedTime >= 33.0) {
         m_profiling = false;
     }
@@ -151,20 +133,6 @@ void Profiler::functionBegin(const std::string& name) {
     function.start = timeStamp;
 
     m_functionStack.emplace(name);
-
-    //FrameNode* function;
-    //auto* parent = m_frameStack.top();
-    //if (m_computedFrames.count(name)) {
-    //    function = m_computedFrames[name];
-    //} else {
-    //    function = new FrameNode();
-    //    parent->children.push_back(std::unique_ptr<FrameNode>(function));
-    //    m_computedFrames.emplace(name, function);
-    //}
-
-    //function->start = timeStamp;
-    //function->name  = name;
-    //m_frameStack.emplace(function);
 }
 
 void Profiler::functionEnd(const std::string& name) {
@@ -183,11 +151,6 @@ void Profiler::functionEnd(const std::string& name) {
     function.callCount++;
 
     m_functionStack.pop();
-
-    //auto* function = m_frameStack.top();
-    //std::chrono::duration<double, std::milli> time(timeStamp - function->start);
-    //function->elapsedTime += time.count();
-    //m_frameStack.pop();
 }
 
 void Profiler::queryBegin(const std::string& name) {
@@ -207,18 +170,6 @@ void Profiler::queryBegin(const std::string& name) {
     }
 
     m_boundQueries.emplace(queryID, &function);
-
-    //FrameNode* function;
-    //if (!name.empty()) {
-    //    auto* parent   = m_frameStack.top();
-    //    function       = new FrameNode();
-    //    function->name = name;
-    //    parent->children.push_back(std::unique_ptr<FrameNode>(function));
-    //    m_frameStack.emplace(function);
-    //} else {
-    //    function = m_frameStack.top();
-    //}
-    //m_boundQueries.emplace(queryID, function);
 }
 
 void Profiler::queryEnd(const std::string& name) {
@@ -226,13 +177,6 @@ void Profiler::queryEnd(const std::string& name) {
         return;
     }
     glEndQuery(GL_TIME_ELAPSED);
-
-    //if (!name.empty()) {
-    //    massert(m_frameStack.top()->name == name,
-    //            "Ending profiling of different query.\nExpected: {}\nGot: {}\n",
-    //            m_frameStack.top()->name, name);
-    //    m_frameStack.pop();
-    //}
 }
 
 //void Profiler::printResults() {

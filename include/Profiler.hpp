@@ -38,10 +38,6 @@ private:
     static std::stack<std::string> m_functionStack;
     static std::unordered_map<std::string, ProfiledFunction> m_functions;
 
-    //static std::vector<std::unique_ptr<FrameNode>> m_frames;
-    //static std::vector<std::unique_ptr<FrameNode>> m_results;
-    //static std::unordered_map<std::string, FrameNode*> m_computedFrames;
-
     static bool m_profiling;
     static bool m_initialized;
     static bool m_resultsAvailable;
@@ -66,6 +62,6 @@ public:
     static void queryBegin(const std::string& name = "");
     static void queryEnd(const std::string& name = "");
 
-    static void printResults();
+    //static void printResults();
     //static void printResult(std::string_view name);
 };
