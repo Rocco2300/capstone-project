@@ -5,14 +5,17 @@
 #include <GL/gl3w.h>
 
 #include <thread>
-#include <unordered_set>
 
 std::string Profiler::m_target;
 
+int Profiler::m_currentFrame{};
+double Profiler::m_frameTime{};
+TimePoint Profiler::m_frameStart;
+
 std::vector<uint32> Profiler::m_queryPool;
 std::queue<BoundQuery> Profiler::m_boundQueries;
-std::vector<ProfiledFunction> Profiler::m_functions;
-std::stack<ProfiledFunction*> Profiler::m_frameStack;
+std::stack<std::string> Profiler::m_functionStack;
+std::unordered_map<std::string, ProfiledFunction> Profiler::m_functions;
 
 //std::vector<std::unique_ptr<FrameNode>> Profiler::m_results;
 //std::unordered_map<std::string, FrameNode*> Profiler::m_computedFrames;
@@ -20,8 +23,6 @@ std::stack<ProfiledFunction*> Profiler::m_frameStack;
 bool Profiler::m_profiling{};
 bool Profiler::m_initialized{};
 bool Profiler::m_resultsAvailable{};
-
-int Profiler::m_currentFrame{};
 
 double Profiler::m_elapsedTime{};
 double Profiler::m_profileTime{};
@@ -31,8 +32,8 @@ bool Profiler::profiling() { return m_profiling; }
 bool Profiler::resultsAvailable() { return m_resultsAvailable; }
 
 void Profiler::initialize() {
-    m_profiling = false;
-    m_initialized = true;
+    m_profiling        = false;
+    m_initialized      = true;
     m_resultsAvailable = true;
     m_queryPool.resize(QUERY_COUNT);
 
@@ -63,6 +64,8 @@ void Profiler::frameBegin() {
         return;
     }
 
+    m_frameStart = timeStamp;
+
     //auto* frame  = new FrameNode();
     //frame->start = timeStamp;
     //frame->id    = m_currentFrame;
@@ -73,42 +76,44 @@ void Profiler::frameBegin() {
 
 void Profiler::frameEnd() {
     auto timeStamp = std::chrono::high_resolution_clock::now();
-    //if (!m_boundQueries.empty()) {
-    //    int done{};
-    //    do {
-    //        auto [queryID, frameNode] = m_boundQueries.front();
-    //        glGetQueryObjectiv(queryID, GL_QUERY_RESULT_AVAILABLE, &done);
-    //        if (done) {
-    //            uint64 timer{};
-    //            glGetQueryObjectui64v(queryID, GL_QUERY_RESULT, &timer);
+    if (!m_boundQueries.empty()) {
+        int resultsAvailable{};
+        do {
+            auto [queryID, frameNode] = m_boundQueries.front();
+            glGetQueryObjectiv(queryID, GL_QUERY_RESULT_AVAILABLE, &resultsAvailable);
+            if (resultsAvailable) {
+                uint64 timer{};
+                glGetQueryObjectui64v(queryID, GL_QUERY_RESULT, &timer);
 
-    //            double elapsedTime = static_cast<double>(timer) / 1'000'000.0;
-    //            frameNode->elapsedTime += elapsedTime;
+                double elapsedTime = static_cast<double>(timer) / 1'000'000.0;
+                frameNode->elapsedTime += elapsedTime;
 
-    //            m_queryPool.push_back(queryID);
-    //            m_boundQueries.pop();
-    //        }
-    //    } while (done && !m_boundQueries.empty());
+                m_queryPool.push_back(queryID);
+                m_boundQueries.pop();
+            }
+        } while (resultsAvailable && !m_boundQueries.empty());
 
-    //    if (!m_profiling && m_boundQueries.empty()) {
-    //        m_resultsAvailable = true;
+        if (!m_profiling && m_boundQueries.empty()) {
+            m_resultsAvailable = true;
 
-    //        auto resultFrame  = std::unique_ptr<FrameNode>(std::move(m_frames.back()));
-    //        resultFrame->name = m_target;
-    //        m_frames.pop_back();
+            m_frameTime /= m_currentFrame;
+            for (auto& [name, function]: m_functions) {
+                function.elapsedTime /= function.callCount;
+            }
 
-    //        for (const auto& frame: m_frames) { resultFrame->add(frame.get()); }
-    //        resultFrame->divide(m_currentFrame);
-
-    //        m_frames.clear();
-    //        m_results.push_back(std::move(resultFrame));
-    //        printResults();
-    //    }
-    //}
+            fmt::print("{}: {:.3f} ms\n", m_target, m_frameTime);
+            for (auto& [name, function]: m_functions) {
+                fmt::print("\t{}: {:.3f} ms\n", name, function.elapsedTime);
+            }
+        }
+    }
 
     if (!m_initialized || !m_profiling) {
         return;
     }
+
+    std::chrono::duration<double, std::milli> time(timeStamp - m_frameStart);
+    m_frameTime += time.count();
 
     //auto* frame = m_frameStack.top();
     //std::chrono::duration<double, std::milli> time(timeStamp - frame->start);
@@ -116,7 +121,8 @@ void Profiler::frameEnd() {
     //m_elapsedTime += time.count();
     //m_frameStack.pop();
 
-    //m_currentFrame++;
+    m_currentFrame++;
+    m_elapsedTime += time.count();
     //m_computedFrames.clear();
     if (m_elapsedTime >= m_profileTime) {
         m_profiling = false;
@@ -128,6 +134,11 @@ void Profiler::functionBegin(const std::string& name) {
     if (!m_initialized || !m_profiling) {
         return;
     }
+
+    auto& function = m_functions[name];
+    function.start = timeStamp;
+
+    m_functionStack.emplace(name);
 
     //FrameNode* function;
     //auto* parent = m_frameStack.top();
@@ -149,9 +160,17 @@ void Profiler::functionEnd(const std::string& name) {
     if (!m_initialized || !m_profiling) {
         return;
     }
-    massert(m_frameStack.top()->name == name,
+
+    massert(m_functionStack.top() == name,
             "Ending profiling of different function.\nExpected: {}\nGot: {}\n",
-            m_frameStack.top()->name, name);
+            m_functionStack.top(), name);
+
+    auto& function = m_functions[name];
+    std::chrono::duration<double, std::milli> time(timeStamp - function.start);
+    function.elapsedTime += time.count();
+    function.callCount++;
+
+    m_functionStack.pop();
 
     //auto* function = m_frameStack.top();
     //std::chrono::duration<double, std::milli> time(timeStamp - function->start);
@@ -167,6 +186,15 @@ void Profiler::queryBegin(const std::string& name) {
     m_queryPool.pop_back();
 
     glBeginQuery(GL_TIME_ELAPSED, queryID);
+
+    auto functionName = (m_functionStack.empty()) ? name : m_functionStack.top();
+    auto& function    = m_functions[functionName];
+
+    if (!name.empty()) {
+        function.callCount++;
+    }
+
+    m_boundQueries.emplace(queryID, &function);
 
     //FrameNode* function;
     //if (!name.empty()) {
