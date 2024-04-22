@@ -45,6 +45,7 @@ private:
     static bool m_profiling;
     static bool m_initialized;
     static bool m_resultsAvailable;
+    static bool m_shouldStartProfiling;
 
     static double m_elapsedTime;
     static double m_profileTime;
