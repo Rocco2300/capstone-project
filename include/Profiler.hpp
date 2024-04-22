@@ -68,8 +68,6 @@ public:
     static void queryBegin(const std::string& name = "");
     static void queryEnd();
 
-#ifndef NDEGBUG
     static void printResults();
     static void printResult(const std::string& name);
-#endif
 };

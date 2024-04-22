@@ -254,7 +254,7 @@ int main() {
         oceanPlane.bind();
         glDrawElements(GL_TRIANGLES, oceanPlane.getIndices().size(), GL_UNSIGNED_INT, 0);
         oceanPlane.unbind();
-        Profiler::queryEnd("DrawOceanSurface");
+        Profiler::queryEnd();
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);
