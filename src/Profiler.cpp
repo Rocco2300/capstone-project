@@ -115,10 +115,12 @@ void Profiler::frameEnd() {
 
     std::chrono::duration<double, std::milli> time(timeStamp - m_frameStart);
     m_frameTime += time.count();
+    m_elapsedTime += time.count();
+
 
     m_currentFrame++;
-    m_elapsedTime += time.count();
-    if (m_elapsedTime >= m_profileTime || m_elapsedTime >= 33.0) {
+    auto deltaTime = m_frameTime / m_currentFrame;
+    if (m_elapsedTime >= m_profileTime || deltaTime >= 33.0) {
         m_profiling = false;
     }
 }
