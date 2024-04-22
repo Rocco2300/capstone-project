@@ -19,7 +19,7 @@
 #include <fmt/core.h>
 
 static void errorCallback(int error, const char* description) {
-    fmt::print("Error: {}", description);
+    fmt::print("Error {}: {}", error, description);
 }
 
 const char* algorithms[] = {"Sines", "Gerstner", "DFT", "FFT", "Slow Gerstner", "Slow FFT"};
@@ -198,12 +198,12 @@ int main() {
         ImGui::InputFloat("Patch size", &spectrumParams.patchSize, 0.0f, 0.0f, "%.1f");
         if (ImGui::InputFloat("Wind speed", &windSpeed, 0.0f, 0.0f, "%.1f")) {
             auto windDir = windDirection * glm::pi<float>() / 180.0f;
-            auto wind    = glm::vec2(glm::cos(windDirection), glm::sin(windDirection)) * windSpeed;
+            auto wind    = glm::vec2(glm::cos(windDir), glm::sin(windDir)) * windSpeed;
             spectrumParams.wind = wind;
         }
         if (ImGui::InputFloat("Wind direction", &windDirection, 0.0f, 0.0f, "%.1f")) {
             auto windDir = windDirection * glm::pi<float>() / 180.0f;
-            auto wind    = glm::vec2(glm::cos(windDirection), glm::sin(windDirection)) * windSpeed;
+            auto wind    = glm::vec2(glm::cos(windDir), glm::sin(windDir)) * windSpeed;
             spectrumParams.wind = wind;
         }
         ImGui::PopItemWidth();

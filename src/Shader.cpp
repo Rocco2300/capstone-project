@@ -60,9 +60,9 @@ void Shader::compile() {
     int len{};
     glGetShaderiv(m_id, GL_INFO_LOG_LENGTH, &len);
     if (len > 1) {
-        char buffer[len + 1];
-        glGetShaderInfoLog(m_id, len + 1, nullptr, buffer);
-        fmt::print(stderr, "{}", static_cast<std::string_view>(buffer));
+        auto buffer = std::make_unique<char[]>(len + 1);
+        glGetShaderInfoLog(m_id, len + 1, nullptr, buffer.get());
+        fmt::print(stderr, "{}", static_cast<std::string_view>(buffer.get()));
     }
 
     int success{};

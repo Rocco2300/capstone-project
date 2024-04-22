@@ -14,9 +14,9 @@ static void printInfoLog(uint32 id) {
     int len;
     glGetProgramiv(id, GL_INFO_LOG_LENGTH, &len);
     if (len > 1) {
-        char buffer[len + 1];
-        glGetProgramInfoLog(id, len + 1, nullptr, buffer);
-        fmt::print(stderr, "{}", static_cast<std::string_view>(buffer));
+        auto buffer = std::make_unique<char[]>(len + 1);
+        glGetProgramInfoLog(id, len + 1, nullptr, buffer.get());
+        fmt::print(stderr, "{}", static_cast<std::string_view>(buffer.get()));
     }
 }
 

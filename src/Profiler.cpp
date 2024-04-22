@@ -108,7 +108,9 @@ void Profiler::frameEnd() {
                 it->second = {m_frameTime, m_functions};
             }
 
+#ifndef NDEBUG
             printResults();
+#endif
         }
     }
 
@@ -177,13 +179,14 @@ void Profiler::queryBegin(const std::string& name) {
     m_boundQueries.emplace(queryID, &function);
 }
 
-void Profiler::queryEnd(const std::string& name) {
+void Profiler::queryEnd() {
     if (!m_initialized || !m_profiling) {
         return;
     }
     glEndQuery(GL_TIME_ELAPSED);
 }
 
+#ifndef NDEBUG
 void Profiler::printResults() {
     for (const auto& [profileName, results]: m_results) {
         fmt::print("{}: {:.3f} ms\n", profileName, results.frametime);
@@ -205,3 +208,4 @@ void Profiler::printResult(const std::string& name) {
         fmt::print("\t{}: {:.3f} ms\n", functionName, function.elapsedTime);
     }
 }
+#endif

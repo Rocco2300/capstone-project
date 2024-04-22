@@ -157,7 +157,6 @@ void DFT::dispatchGerstnerCPU() {
             d *= perm;
             n *= perm;
 
-            glm::vec3 normal      = glm::normalize(glm::vec3(-n.x, 1.f, -n.y));
             dyImage.at(x, y)      = {h.x, h.y, 0.f, 1.f};
             dx_dzImage.at(x, y)   = {d.x, d.y, 0.f, 1.f};
             dyx_dyzImage.at(x, y) = {n.x, n.y, 0.f, 1.f};

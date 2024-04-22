@@ -25,15 +25,15 @@ void Plane::generate(uint32 width, uint32 height) {
 
     std::vector<uint32> indices;
     std::vector<Vertex> vertices;
-    for (int z = 0; z < m_height; z++) {
-        for (int x = 0; x < m_width; x++) {
+    for (size_t z = 0; z < m_height; z++) {
+        for (size_t x = 0; x < m_width; x++) {
             Vertex vertex{x * m_spacing, 0.f, z * m_spacing};
             vertices.push_back(vertex);
         }
     }
 
-    for (int j = 0; j < m_height - 1; j++) {
-        for (int i = 0; i < m_width - 1; i++) {
+    for (size_t j = 0; j < m_height - 1; j++) {
+        for (size_t i = 0; i < m_width - 1; i++) {
             indices.push_back(indexFrom2D(i, j));
             indices.push_back(indexFrom2D(i + 1, j + 1));
             indices.push_back(indexFrom2D(i + 1, j));

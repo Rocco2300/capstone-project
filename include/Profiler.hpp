@@ -66,8 +66,10 @@ public:
     static void functionBegin(const std::string& name);
     static void functionEnd(const std::string& name);
     static void queryBegin(const std::string& name = "");
-    static void queryEnd(const std::string& name = "");
+    static void queryEnd();
 
+#ifndef NDEGBUG
     static void printResults();
     static void printResult(const std::string& name);
+#endif
 };
