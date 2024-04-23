@@ -8,7 +8,8 @@
 #include <unordered_map>
 
 void loadShaders();
-void loadTextures();
+void loadImages(int size);
+void loadTextures(int size);
 
 class ResourceManager {
 private:
@@ -19,8 +20,8 @@ private:
 public:
     ResourceManager() = delete;
 
-    static void resize(int size, int depth = 1);
-    static Texture& resize(const std::string& name, int size, int depth = 1);
+    static void resizeTextures(int size);
+    static Texture& resizeTexture(const std::string& name, int size, int depth = 1);
     static Texture& getTexture(const std::string& name);
     static Texture& getDebugTexture(int index);
     static Texture& insertTexture(const std::string& name,
@@ -29,6 +30,8 @@ public:
                                   int depth        = 1,
                                   bool dualChannel = false);
 
+    static void resizeImages(int size);
+    static Image& resizeImage(const std::string& name, int size);
     static Image& getImage(const std::string& name);
     static Image& insertImage(const std::string& name, int size);
 

@@ -1,7 +1,8 @@
 #include "Image.hpp"
 
-#include <random>
+#include <cstring>
 #include <fstream>
+#include <random>
 
 static float normalRandom() {
     static std::random_device rnd;
@@ -15,7 +16,7 @@ Image::Image(uint16 width, uint16 height) {
     m_width  = width;
     m_height = height;
 
-    m_data = new float[4 * width * height];
+    m_data.resize(4 * width * height);
     for (int i = 0; i < width * height; i++) {
         auto index  = i * 4;
         auto& pixel = this->at(index);
@@ -30,29 +31,29 @@ Image::Image(Image&& other) {
     m_width  = other.m_width;
     m_height = other.m_height;
 
-    m_data       = other.m_data;
-    other.m_data = nullptr;
+    m_data = std::move(other.m_data);
 }
 
 Image& Image::operator=(Image&& other) {
     m_width  = other.m_width;
     m_height = other.m_height;
 
-    m_data       = other.m_data;
-    other.m_data = nullptr;
+    m_data = std::move(other.m_data);
     return *this;
 }
 
-Image::~Image() {
-    delete[] m_data;
-    m_data = nullptr;
+void Image::setSize(uint16 width, uint16 height) {
+    m_width  = width;
+    m_height = height;
+
+    m_data.resize(4 * width * height);
 }
 
-Pixel& Image::at(int index) { return *reinterpret_cast<Pixel*>(m_data + index); }
+Pixel& Image::at(int index) { return *reinterpret_cast<Pixel*>(&m_data.at(index)); }
 
 Pixel& Image::at(int x, int y) {
     int index = (y * m_width + x) * 4;
-    return *reinterpret_cast<Pixel*>(m_data + index);
+    return *reinterpret_cast<Pixel*>(&m_data.at(index));
 }
 
 void* Image::data() { return &m_data[0]; }

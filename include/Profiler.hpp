@@ -46,6 +46,7 @@ private:
 
     static bool m_profiling;
     static bool m_initialized;
+    static bool m_doneProfiling;
     static bool m_resultsAvailable;
     static bool m_shouldStartProfiling;
 
@@ -70,4 +71,7 @@ public:
 
     static void printResults();
     static void printResult(const std::string& name);
+
+private:
+    static void saveResults();
 };

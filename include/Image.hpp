@@ -14,18 +14,20 @@ private:
     uint16 m_width{};
     uint16 m_height{};
 
-    float* m_data{};
+    std::vector<float> m_data{};
 
 public:
     Image() = default;
     Image(uint16 width, uint16 height);
-    virtual ~Image();
+    virtual ~Image() = default;
 
     Image(Image&& other);
     Image& operator=(Image&& other);
 
     Image(const Image& other) = delete;
     Image& operator=(const Image& other) = delete;
+
+    void setSize(uint16 width, uint16 height);
 
     Pixel& at(int index);
     Pixel& at(int x, int y);

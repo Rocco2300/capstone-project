@@ -61,6 +61,7 @@ void Camera::update(float deltaTime) {
 
         // this is so that we don't getTexture absurd delta when first pressing right click
         auto mouseDelta = (!m_rotating) ? glm::vec2(0.f, 0.f) : Mouse::getPosition();
+        deltaTime = 0.16f;
         m_yaw += mouseDelta.x * m_sensitivity * deltaTime;
         m_pitch += mouseDelta.y * m_sensitivity * deltaTime;
         Mouse::setPosition({0.f, 0.f});

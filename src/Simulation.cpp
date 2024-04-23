@@ -46,6 +46,8 @@ void Simulation::setAlgorithm(Algorithm algorithm) {
     } else {
         m_spectrum.setAccelerated(true);
     }
+
+    m_spectrum.initialize();
 }
 
 void Simulation::initialize() {

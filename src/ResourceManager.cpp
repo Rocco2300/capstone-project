@@ -25,14 +25,24 @@ Texture& ResourceManager::getTexture(const std::string& name) {
     return it->second;
 }
 
-void ResourceManager::resize(int size, int depth) {
-    for (auto& [_, texture]: m_textures) { texture.setSize(size, size, depth); }
+void ResourceManager::resizeTextures(int size) {
+    for (auto& [_, texture]: m_textures) { texture.setSize(size, size, 1); }
 }
 
-Texture& ResourceManager::resize(const std::string& name, int size, int depth) {
+Texture& ResourceManager::resizeTexture(const std::string& name, int size, int depth) {
     auto& texture = ResourceManager::getTexture(name);
     texture.setSize(size, size, depth);
     return texture;
+}
+
+void ResourceManager::resizeImages(int size) {
+    for (auto& [_, image]: m_images) { image.setSize(size, size); }
+}
+
+Image& ResourceManager::resizeImage(const std::string& name, int size) {
+    auto& image = ResourceManager::getImage(name);
+    image.setSize(size, size);
+    return image;
 }
 
 Image& ResourceManager::insertImage(const std::string& name, int size) {
@@ -136,4 +146,19 @@ void loadShaders() {
     ResourceManager::insertProgram("copyTexture", "../shaders/CopyTexture.comp");
     ResourceManager::insertProgram("ocean", "../shaders/Ocean.vert", "../shaders/Ocean.frag");
     // clang-format on
+}
+
+void loadImages(int size) {
+    ResourceManager::insertImage("dy", size);
+    ResourceManager::insertImage("dx_dz", size);
+    ResourceManager::insertImage("dyx_dyz", size);
+    ResourceManager::insertImage("wavedata", size);
+    ResourceManager::insertImage("initialSpectrum", size);
+}
+
+void loadTextures(int size) {
+    ResourceManager::insertTexture("buffers", BUFFERS_UNIT, size, 14);
+    ResourceManager::insertTexture("displacement", DISPLACEMENT_UNIT, size);
+    ResourceManager::insertTexture("normal", NORMAL_UNIT, size);
+    ResourceManager::insertTexture("test", DEBUG_VIEW_UNIT, size);
 }

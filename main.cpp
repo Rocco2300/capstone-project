@@ -53,11 +53,14 @@ int main() {
         return -1;
     }
 
-    loadShaders();
-
     int size      = 256;
     int prevSize  = 256;
     float spacing = 64.f / size;
+
+    loadShaders();
+    loadImages(size);
+    loadTextures(size);
+
     Profiler::initialize();
 
     Plane oceanPlane;
@@ -70,18 +73,12 @@ int main() {
     camera.setPerspective(45.f, 1280.f / 720.f);
     camera.setView({0.f, 0.f, -1.f}, {0.f, 0.f, 0.f});
     camera.setSpeed(3.f);
-    camera.setSensitivity(100.f);
-
-    ResourceManager::insertTexture("buffers", BUFFERS_UNIT, size, 14);
-    ResourceManager::insertTexture("displacement", DISPLACEMENT_UNIT, size);
-    ResourceManager::insertTexture("normal", NORMAL_UNIT, size);
-    ResourceManager::insertTexture("test", DEBUG_VIEW_UNIT, size);
+    camera.setSensitivity(5.f);
 
     Simulation simulation(size);
     simulation.setAlgorithm(Algorithm::FFT);
     simulation.initialize();
 
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glCullFace(GL_BACK);
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
@@ -101,6 +98,7 @@ int main() {
     ImGui_ImplOpenGL3_Init("#version 460");
 
     int algo                = 3;
+    bool wireframe          = false;
     bool shouldResize       = false;
     bool shouldReinitialize = false;
 
@@ -122,7 +120,8 @@ int main() {
                 oceanPlane.generate(size, size);
                 program.setUniform("spacing", spacing);
 
-                ResourceManager::resize(size);
+                ResourceManager::resizeImages(size);
+                ResourceManager::resizeTextures(size);
                 simulation.setSize(size);
 
                 shouldResize = false;
@@ -197,13 +196,13 @@ int main() {
         ImGui::InputFloat("Height multiplier", &spectrumParams.A, 0.0f, 0.0f, "%.1f");
         ImGui::InputFloat("Patch size", &spectrumParams.patchSize, 0.0f, 0.0f, "%.1f");
         if (ImGui::InputFloat("Wind speed", &windSpeed, 0.0f, 0.0f, "%.1f")) {
-            auto windDir = windDirection * glm::pi<float>() / 180.0f;
-            auto wind    = glm::vec2(glm::cos(windDir), glm::sin(windDir)) * windSpeed;
+            auto windDir        = windDirection * glm::pi<float>() / 180.0f;
+            auto wind           = glm::vec2(glm::cos(windDir), glm::sin(windDir)) * windSpeed;
             spectrumParams.wind = wind;
         }
         if (ImGui::InputFloat("Wind direction", &windDirection, 0.0f, 0.0f, "%.1f")) {
-            auto windDir = windDirection * glm::pi<float>() / 180.0f;
-            auto wind    = glm::vec2(glm::cos(windDir), glm::sin(windDir)) * windSpeed;
+            auto windDir        = windDirection * glm::pi<float>() / 180.0f;
+            auto wind           = glm::vec2(glm::cos(windDir), glm::sin(windDir)) * windSpeed;
             spectrumParams.wind = wind;
         }
         ImGui::PopItemWidth();
@@ -225,24 +224,29 @@ int main() {
         ImGui::PopItemWidth();
         if (ImGui::Button("Profile")) {
             if (!Profiler::profiling() && Profiler::resultsAvailable()) {
+                shouldReinitialize = true;
                 Profiler::beginProfiling(algorithms[algo], 0.0125);
             }
         }
         ImGui::SameLine();
-        if (ImGui::Button("Benchmark")) {
-        }
+        if (ImGui::Button("Benchmark")) {}
 
         ImGui::End();
 
-#ifndef NDEBUG
         ImGui::Begin("Debug");
+
+        if (ImGui::Button("Toggle wireframe")) {
+            wireframe = !wireframe;
+            auto polygonMode = (wireframe) ? GL_LINE : GL_FILL;
+            glPolygonMode(GL_FRONT_AND_BACK, polygonMode);
+        }
 
         ImGui::Image(ResourceManager::getDebugTexture(BUTTERFLY_INDEX), {256, 256}, {0, 1}, {1, 0});
         ImGui::Image(ResourceManager::getTexture("normal"), {256, 256}, {0, 1}, {1, 0});
         ImGui::Image(ResourceManager::getTexture("displacement"), {256, 256}, {0, 1}, {1, 0});
 
         ImGui::End();
-#endif
+
         ImGui::Render();
 
         Profiler::queryBegin("DrawOceanSurface");

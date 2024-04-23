@@ -20,6 +20,7 @@ std::unordered_map<std::string, ProfilerResult> Profiler::m_results;
 
 bool Profiler::m_profiling{};
 bool Profiler::m_initialized{};
+bool Profiler::m_doneProfiling{};
 bool Profiler::m_resultsAvailable{};
 bool Profiler::m_shouldStartProfiling{};
 
@@ -33,6 +34,7 @@ bool Profiler::resultsAvailable() { return m_resultsAvailable; }
 void Profiler::initialize() {
     m_profiling            = false;
     m_initialized          = true;
+    m_doneProfiling        = false;
     m_resultsAvailable     = true;
     m_shouldStartProfiling = false;
     m_queryPool.resize(QUERY_COUNT);
@@ -52,9 +54,11 @@ void Profiler::beginProfiling(const std::string& name, double seconds) {
 
     m_target               = name;
     m_profiling            = false;
+    m_doneProfiling        = false;
     m_resultsAvailable     = false;
     m_shouldStartProfiling = true;
 
+    m_frameTime    = 0.0;
     m_currentFrame = 0;
     m_elapsedTime  = 0.0;
     m_profileTime  = seconds * 1000.0;
@@ -95,22 +99,8 @@ void Profiler::frameEnd() {
             }
         } while (resultsAvailable && !m_boundQueries.empty());
 
-        if (!m_profiling && m_boundQueries.empty()) {
-            m_resultsAvailable = true;
-
-            m_frameTime /= m_currentFrame;
-            for (auto& [name, function]: m_functions) {
-                function.elapsedTime /= function.callCount;
-            }
-
-            auto [it, success] = m_results.try_emplace(m_target, m_frameTime, m_functions);
-            if (!success) {
-                it->second = {m_frameTime, m_functions};
-            }
-
-#ifndef NDEBUG
-            printResults();
-#endif
+        if (m_boundQueries.empty() && m_doneProfiling) {
+            saveResults();
         }
     }
 
@@ -122,11 +112,15 @@ void Profiler::frameEnd() {
     m_frameTime += time.count();
     m_elapsedTime += time.count();
 
-
     m_currentFrame++;
     auto deltaTime = m_frameTime / m_currentFrame;
     if (m_elapsedTime >= m_profileTime || deltaTime >= 33.0) {
-        m_profiling = false;
+        m_profiling     = false;
+        m_doneProfiling = true;
+
+        if (m_boundQueries.empty()) {
+            saveResults();
+        }
     }
 }
 
@@ -206,4 +200,18 @@ void Profiler::printResult(const std::string& name) {
     for (const auto& [functionName, function]: results.functions) {
         fmt::print("\t{}: {:.3f} ms\n", functionName, function.elapsedTime);
     }
+}
+
+void Profiler::saveResults() {
+    m_resultsAvailable = true;
+
+    m_frameTime /= m_currentFrame;
+    for (auto& [name, function]: m_functions) { function.elapsedTime /= function.callCount; }
+
+    auto [it, success] = m_results.try_emplace(m_target, m_frameTime, m_functions);
+    if (!success) {
+        it->second = {m_frameTime, m_functions};
+    }
+
+    printResults();
 }

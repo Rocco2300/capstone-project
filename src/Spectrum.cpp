@@ -13,12 +13,6 @@ const float g = 9.81;
 Spectrum::Spectrum(int size) {
     m_size = size;
 
-    ResourceManager::insertImage("dy", size);
-    ResourceManager::insertImage("dx_dz", size);
-    ResourceManager::insertImage("dyx_dyz", size);
-    ResourceManager::insertImage("wavedata", size);
-    ResourceManager::insertImage("initialSpectrum", size);
-
     auto windSpeed     = 25.0f;
     auto windDirection = glm::pi<float>() / 4.f;
     auto wind          = glm::vec2(glm::cos(windDirection), glm::sin(windDirection)) * windSpeed;
@@ -28,6 +22,7 @@ Spectrum::Spectrum(int size) {
 
     glGenBuffers(1, &m_paramsSSBO);
 
+    m_noiseImage           = NoiseImage(m_size, m_size);
     m_initialProgram       = &ResourceManager::getProgram("initialSpectrum");
     m_timeDependentProgram = &ResourceManager::getProgram("timeDependentSpectrum");
     m_initialProgram->setUniform("size", m_size);
@@ -38,6 +33,7 @@ SpectrumParameters& Spectrum::params() { return m_params; }
 void Spectrum::setSize(int size) {
     m_size = size;
     m_initialProgram->setUniform("size", m_size);
+    m_noiseImage = NoiseImage(m_size, m_size);
 }
 
 void Spectrum::setAccelerated(bool accelerated) { m_accelerated = accelerated; }
@@ -81,7 +77,6 @@ float Spectrum::phillips(glm::vec2 k) {
 void Spectrum::computeInitialGPUSpectrum() {
     Profiler::functionBegin("GenerateOceanSpectrum");
 
-    m_noiseImage   = NoiseImage(m_size, m_size);
     auto* texArray = &ResourceManager::getTexture("buffers");
 
     Profiler::queryBegin();
@@ -112,6 +107,8 @@ void Spectrum::computeInitialGPUSpectrum() {
 }
 
 void Spectrum::computeInitialCPUSpectrum() {
+    Profiler::functionBegin("GenerateOceanSpectrum");
+
     Image temp(m_size, m_size);
     auto& wavedata        = ResourceManager::getImage("wavedata");
     auto& initialSpectrum = ResourceManager::getImage("initialSpectrum");
@@ -143,6 +140,8 @@ void Spectrum::computeInitialCPUSpectrum() {
             hTilde         = {h0K.r, h0K.g, h0MinusK.r, -h0MinusK.g};
         }
     }
+
+    Profiler::functionEnd("GenerateOceanSpectrum");
 }
 
 static glm::vec2 complexMul(glm::vec2 a, glm::vec2 b) {
