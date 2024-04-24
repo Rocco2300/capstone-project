@@ -2,19 +2,23 @@
 
 #include "Types.hpp"
 
+#include <glm/glm.hpp>
+
 #include <vector>
 #include <string>
 
-struct Pixel {
+struct PixelStruct {
     float r, g, b, a;
 };
+
+typedef glm::vec4 Pixel;
 
 class Image {
 private:
     uint16 m_width{};
     uint16 m_height{};
 
-    std::vector<float> m_data{};
+    std::vector<Pixel> m_data{};
 
 public:
     Image() = default;

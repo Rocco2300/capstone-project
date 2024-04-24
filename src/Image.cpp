@@ -16,10 +16,9 @@ Image::Image(uint16 width, uint16 height) {
     m_width  = width;
     m_height = height;
 
-    m_data.resize(4 * width * height);
+    m_data.resize(width * height);
     for (int i = 0; i < width * height; i++) {
-        auto index  = i * 4;
-        auto& pixel = this->at(index);
+        auto& pixel = m_data.at(i);
         pixel.r     = 0.f;
         pixel.g     = 0.f;
         pixel.b     = 0.f;
@@ -49,11 +48,11 @@ void Image::setSize(uint16 width, uint16 height) {
     m_data.resize(4 * width * height);
 }
 
-Pixel& Image::at(int index) { return *reinterpret_cast<Pixel*>(&m_data.at(index)); }
+Pixel& Image::at(int index) { return m_data.at(index); }
 
 Pixel& Image::at(int x, int y) {
-    int index = (y * m_width + x) * 4;
-    return *reinterpret_cast<Pixel*>(&m_data.at(index));
+    int index = y * m_width + x;
+    return m_data.at(index);
 }
 
 void* Image::data() { return &m_data[0]; }
