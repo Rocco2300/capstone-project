@@ -99,11 +99,17 @@ int main() {
     float windDirection  = 0.0f;
     auto& spectrumParams = simulation.params();
 
+    bool pause{};
+    double time{};
     double prev = glfwGetTime();
     while (!glfwWindowShouldClose(window)) {
         double now       = glfwGetTime();
         double deltaTime = now - prev;
         prev             = now;
+
+        if (!pause) {
+            time += deltaTime;
+        }
 
         Profiler::frameBegin();
 
@@ -119,7 +125,7 @@ int main() {
         }
 
         // TODO: use double everywhere for time
-        simulation.update(static_cast<float>(now));
+        simulation.update(static_cast<float>(time));
 
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
@@ -222,6 +228,9 @@ int main() {
 
         ImGui::Begin("Debug");
 
+        if (ImGui::Button("Play/Pause")) {
+            pause = !pause;
+        }
         if (ImGui::Button("Toggle wireframe")) {
             wireframe        = !wireframe;
             auto polygonMode = (wireframe) ? GL_LINE : GL_FILL;
@@ -237,8 +246,6 @@ int main() {
         ImGui::Render();
 
         Profiler::queryBegin("DrawOceanSurface");
-        program.use();
-
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
