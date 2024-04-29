@@ -18,6 +18,7 @@ Spectrum::Spectrum(int size) {
     auto wind          = glm::vec2(glm::cos(windDirection), glm::sin(windDirection)) * windSpeed;
     m_params.A         = 4.0f;
     m_params.patchSize = 1750.0f;
+    m_params.lowCutoff = 0.01f;
     m_params.wind      = wind;
 
     glGenBuffers(1, &m_paramsSSBO);

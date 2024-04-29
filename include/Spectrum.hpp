@@ -21,6 +21,8 @@ struct JonswapParameters
 struct PhillipsParameters {
     float A;
     float patchSize;
+    float lowCutoff;
+    float _padding;
     glm::vec2 wind;
 };
 

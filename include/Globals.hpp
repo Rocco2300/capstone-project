@@ -12,6 +12,7 @@
 #define DY_INDEX 4
 #define DX_DZ_INDEX 5
 #define DYX_DYZ_INDEX 6
+#define DXX_DZZ_INDEX 14
 #define BUTTERFLY_INDEX 7
 #define BUFFER_INDEX 8
 #define DISPLACEMENT_BUFFER_INDEX 9

@@ -21,7 +21,7 @@ Simulation::Simulation(int size)
 
     m_spacing = 64.0f / m_size;
     m_oceanPlane.setSpacing(m_spacing);
-    m_oceanPlane.generate(size, size);
+    m_oceanPlane.generate(m_size, m_size);
     m_oceanPlane.setOrigin({m_oceanPlane.getSize().x / 2.f, 0.f, m_oceanPlane.getSize().y / 2.f});
     m_oceanPlane.setPosition({0.f, -2.f, 0.f});
 
@@ -37,12 +37,12 @@ SpectrumParameters& Simulation::params() { return m_spectrum.params(); }
 void Simulation::setSize(int size) {
     m_size = size;
 
-    m_spacing = 64.0f / size;
+    m_spacing = 64.0f / m_size;
     m_oceanPlane.setSpacing(m_spacing);
-    m_oceanPlane.generate(size, size);
+    m_oceanPlane.generate(m_size, m_size);
 
-    ResourceManager::resizeImages(size);
-    ResourceManager::resizeTextures(size);
+    ResourceManager::resizeImages(m_size);
+    ResourceManager::resizeTextures(m_size);
 
     std::vector<float> initialData(4 * m_size * m_size, 0);
     auto* texArray = &ResourceManager::getTexture("buffers");

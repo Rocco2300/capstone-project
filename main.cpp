@@ -69,7 +69,7 @@ int main() {
     camera.setSensitivity(5.f);
 
     Simulation simulation(size);
-    simulation.setAlgorithm(Algorithm::FFT);
+    simulation.setAlgorithm(Algorithm::Gerstner);
     simulation.initialize();
 
     glCullFace(GL_BACK);
@@ -90,7 +90,7 @@ int main() {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 460");
 
-    int algo                = 3;
+    int algo                = 2;
     bool wireframe          = false;
     bool shouldResize       = false;
     bool shouldReinitialize = false;
@@ -109,8 +109,8 @@ int main() {
 
         if (shouldReinitialize) {
             if (shouldResize) {
-                program.setUniform("spacing", simulation.getSpacing());
                 simulation.setSize(size);
+                program.setUniform("spacing", simulation.getSpacing());
                 shouldResize = false;
             }
 
@@ -181,6 +181,7 @@ int main() {
         ImGui::PushItemWidth(100.f);
         ImGui::InputFloat("Height multiplier", &spectrumParams.A, 0.0f, 0.0f, "%.1f");
         ImGui::InputFloat("Patch size", &spectrumParams.patchSize, 0.0f, 0.0f, "%.1f");
+        ImGui::InputFloat("Low Cutoff", &spectrumParams.lowCutoff, 0.0f, 0.0f, "%.3f");
         if (ImGui::InputFloat("Wind speed", &windSpeed, 0.0f, 0.0f, "%.1f")) {
             auto windDir        = windDirection * glm::pi<float>() / 180.0f;
             auto wind           = glm::vec2(glm::cos(windDir), glm::sin(windDir)) * windSpeed;

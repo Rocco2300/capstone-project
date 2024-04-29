@@ -7,6 +7,7 @@ layout (local_size_x = THREAD_NUMBER, local_size_y = THREAD_NUMBER, local_size_z
 layout (std430, binding = PARAMS_BINDING) buffer Params {
     float A;
     float patchSize;
+    float lowCutoff;
     vec2 wind;
 } params;
 
@@ -32,8 +33,8 @@ float phillips(vec2 k) {
     float kL = kLength * L;
     float kw = dot(normalize(k), normalize(params.wind));
 
-    float damping = 0.001;
-    float l = L * damping;
+    float l = L * params.lowCutoff;
+    //float l = L * 0.0001;
 
     return params.A * exp(-1.0 / (kL * kL)) / (kLength * kLength * kLength * kLength) * (kw * kw) * exp(-kLength * kLength * l * l);
 }

@@ -157,7 +157,7 @@ void loadImages(int size) {
 }
 
 void loadTextures(int size) {
-    ResourceManager::insertTexture("buffers", BUFFERS_UNIT, size, 14);
+    ResourceManager::insertTexture("buffers", BUFFERS_UNIT, size, 16);
     ResourceManager::insertTexture("displacement", DISPLACEMENT_UNIT, size);
     ResourceManager::insertTexture("normal", NORMAL_UNIT, size);
     ResourceManager::insertTexture("test", DEBUG_VIEW_UNIT, size);
