@@ -18,8 +18,7 @@ void horizontalPass() {
 
     vec2 h = vec2(0.0);
     vec2 d = vec2(0.0);
-    vec2 s = vec2(0.0);
-    vec2 sd = vec2(0.0);
+    vec2 n = vec2(0.0);
     for (int x = 0; x < size; x++) {
         float phase = 2.0 * M_PI * x * id.x / size;
         vec2 exponent = vec2(cos(phase), sin(phase));
@@ -27,16 +26,14 @@ void horizontalPass() {
         vec2 dy = imageLoad(buffers, ivec3(x, id.y, DY_INDEX)).rg;
         vec2 dx_dz = imageLoad(buffers, ivec3(x, id.y, DX_DZ_INDEX)).rg;
         vec2 dyx_dyz = imageLoad(buffers, ivec3(x, id.y, DYX_DYZ_INDEX)).rg;
-        vec2 dxx_dzz = imageLoad(buffers, ivec3(x, id.y, DXX_DZZ_INDEX)).rg;
 
         h += complexMul(dy, exponent);
         d += complexMul(dx_dz, exponent);
-        s += complexMul(dyx_dyz, exponent);
-        sd += complexMul(dxx_dzz, exponent);
+        n += complexMul(dyx_dyz, exponent);
     }
 
     imageStore(buffers, ivec3(id, DISPLACEMENT_BUFFER_INDEX), vec4(h, d));
-    imageStore(buffers, ivec3(id, NORMAL_BUFFER_INDEX), vec4(s, sd));
+    imageStore(buffers, ivec3(id, NORMAL_BUFFER_INDEX), vec4(n, 0.0, 1.0));
 }
 
 void verticalPass() {
@@ -44,8 +41,7 @@ void verticalPass() {
 
     vec2 h = vec2(0.0);
     vec2 d = vec2(0.0);
-    vec2 s = vec2(0.0);
-    vec2 sd = vec2(0.0);
+    vec2 n = vec2(0.0);
     for (int y = 0; y < size; y++) {
         float phase = 2.0 * M_PI * y * id.y / size;
         vec2 exponent = vec2(cos(phase), sin(phase));
@@ -53,12 +49,10 @@ void verticalPass() {
         vec2 dy = imageLoad(buffers, ivec3(id.x, y, DISPLACEMENT_BUFFER_INDEX)).rg;
         vec2 dx_dz = imageLoad(buffers, ivec3(id.x, y, DISPLACEMENT_BUFFER_INDEX)).ba;
         vec2 dyx_dyz = imageLoad(buffers, ivec3(id.x, y, NORMAL_BUFFER_INDEX)).rg;
-        vec2 dxx_dzz = imageLoad(buffers, ivec3(id.x, y, NORMAL_BUFFER_INDEX)).ba;
 
         h += complexMul(dy, exponent);
         d += complexMul(dx_dz, exponent);
-        s += complexMul(dyx_dyz, exponent);
-        sd += complexMul(dxx_dzz, exponent);
+        n += complexMul(dyx_dyz, exponent);
     }
 
     float perms[] = {1.0, -1.0};
@@ -67,15 +61,13 @@ void verticalPass() {
 
     h /= float(size * size);
     d /= float(size * size);
-    s /= float(size * size);
-    sd /= float(size * size);
+    n /= float(size * size);
     h *= perm;
     d *= perm;
-    s *= perm;
-    sd *= perm;
+    n *= perm;
 
     imageStore(buffers, ivec3(id, HEIGHT_INDEX), vec4(h, 0.0, 1.0));
-    imageStore(buffers, ivec3(id, NORMAL_INDEX), vec4(s, sd));
+    imageStore(buffers, ivec3(id, NORMAL_INDEX), vec4(n, 0.0, 1.0));
     imageStore(buffers, ivec3(id, DISPLACEMENT_INDEX), vec4(d, 0.0, 1.0));
 }
 
