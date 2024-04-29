@@ -40,4 +40,8 @@ public:
     static Program& insertProgram(const std::string& name,
                                   const std::string& vertPath,
                                   const std::string& fragPath);
+    static Program& insertProgram(const std::string& name,
+                                  const std::string& vertPath,
+                                  const std::string& fragPath,
+                                  const std::string& geomPath);
 };

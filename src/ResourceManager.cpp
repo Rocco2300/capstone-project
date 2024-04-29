@@ -92,10 +92,30 @@ Program& ResourceManager::insertProgram(const std::string& name,
     return program;
 }
 
+Program& ResourceManager::insertProgram(const std::string& name,
+                                        const std::string& vertPath,
+                                        const std::string& fragPath,
+                                        const std::string& geomPath) {
+    massert(m_programs.find(name) == m_programs.end(), "Cannot insert duplicate program {}", name);
+
+    auto [it, success] = m_programs.try_emplace(name);
+    auto& program      = it->second;
+
+    VertexShader vertexShader(vertPath);
+    FragmentShader fragmentShader(fragPath);
+    GeometryShader geometryShader(geomPath);
+    program.attachShader(vertexShader);
+    program.attachShader(fragmentShader);
+    program.attachShader(geometryShader);
+    program.validate();
+
+    return program;
+}
+
 Texture& ResourceManager::getDebugTexture(int index) {
-    auto& debugView = getTexture("test");
+    auto& debugView   = getTexture("test");
     auto& copyProgram = getProgram("copyTexture");
-    auto size = debugView.size();
+    auto size         = debugView.size();
 
     copyProgram.setUniform("from", index);
     copyProgram.setUniform("toDebugView", 1);
@@ -145,6 +165,7 @@ void loadShaders() {
     ResourceManager::insertProgram("textureMerger", "../shaders/TextureMerger.comp");
     ResourceManager::insertProgram("copyTexture", "../shaders/CopyTexture.comp");
     ResourceManager::insertProgram("ocean", "../shaders/Ocean.vert", "../shaders/Ocean.frag");
+    ResourceManager::insertProgram("debugNormals", "../shaders/DebugNormals.vert", "../shaders/DebugNormals.frag", "../shaders/DebugNormals.geom");
     // clang-format on
 }
 

@@ -16,6 +16,8 @@ static int shaderTypetoGLenum(Shader::Type type) {
         return GL_FRAGMENT_SHADER;
     case Shader::Type::Compute:
         return GL_COMPUTE_SHADER;
+    case Shader::Type::Geometry:
+        return GL_GEOMETRY_SHADER;
     default:
         return -1;
     }
@@ -29,6 +31,8 @@ static std::string shaderTypeToString(Shader::Type type) {
         return "fragment";
     case Shader::Type::Compute:
         return "compute";
+    case Shader::Type::Geometry:
+        return "geometry";
     default:
         return "none";
     }

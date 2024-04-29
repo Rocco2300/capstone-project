@@ -13,7 +13,8 @@ public:
         None = -1,
         Vertex = 0,
         Fragment,
-        Compute
+        Compute,
+        Geometry
     };
 
 private:
@@ -60,4 +61,12 @@ public:
         : Shader(Shader::Type::Compute) {}
     explicit ComputeShader(const std::string& filePath)
         : Shader(Shader::Type::Compute, filePath) {}
+};
+
+class GeometryShader : public Shader {
+public:
+    GeometryShader()
+            : Shader(Shader::Type::Geometry) {}
+    explicit GeometryShader(const std::string& filePath)
+            : Shader(Shader::Type::Geometry, filePath) {}
 };
