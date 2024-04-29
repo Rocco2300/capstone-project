@@ -81,6 +81,13 @@ int main() {
     program.setUniform("view", camera.getView());
     program.setUniform("model", simulation.getTransform());
     program.setUniform("projection", camera.getProjection());
+    program.setUniform("wireframe", false);
+
+    auto& debugNormalsProgram = ResourceManager::getProgram("debugNormals");
+    debugNormalsProgram.setUniform("spacing", simulation.getSpacing());
+    debugNormalsProgram.setUniform("view", camera.getView());
+    debugNormalsProgram.setUniform("model", simulation.getTransform());
+    debugNormalsProgram.setUniform("projection", camera.getProjection());
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -135,6 +142,7 @@ int main() {
         camera.update(deltaTime);
 
         program.setUniform("view", camera.getView());
+        debugNormalsProgram.setUniform("view", camera.getView());
         program.setUniform("cameraPosition", glm::vec4(camera.getPosition(), 1.f));
 
         ImGui_ImplOpenGL3_NewFrame();
@@ -235,6 +243,12 @@ int main() {
             wireframe        = !wireframe;
             auto polygonMode = (wireframe) ? GL_LINE : GL_FILL;
             glPolygonMode(GL_FRONT_AND_BACK, polygonMode);
+
+            program.setUniform("wireframe", wireframe);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Debug Normals")) {
+            simulation.toggleDebug();
         }
 
         ImGui::Image(ResourceManager::getDebugTexture(BUTTERFLY_INDEX), {256, 256}, {0, 1}, {1, 0});

@@ -19,7 +19,8 @@ enum class Algorithm : int {
 class Simulation {
 private:
     int m_size{};
-    double m_spacing{};
+    bool m_debug{};
+    float m_spacing{};
 
     DFT m_dft;
     FFT m_fft;
@@ -37,6 +38,7 @@ public:
     glm::mat4& getTransform();
     SpectrumParameters& params();
 
+    void toggleDebug();
     void setSize(int size);
     void setAlgorithm(Algorithm algorithm);
 

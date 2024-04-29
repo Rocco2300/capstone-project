@@ -34,6 +34,8 @@ glm::mat4& Simulation::getTransform() { return m_oceanPlane.getTransform(); }
 
 SpectrumParameters& Simulation::params() { return m_spectrum.params(); }
 
+void Simulation::toggleDebug() { m_debug = !m_debug; }
+
 void Simulation::setSize(int size) {
     m_size = size;
 
@@ -101,6 +103,12 @@ void Simulation::update(float time) {
 
 void Simulation::draw() {
     m_oceanPlane.bind();
+    ResourceManager::getProgram("ocean").use();
     glDrawElements(GL_TRIANGLES, m_oceanPlane.getIndices().size(), GL_UNSIGNED_INT, 0);
+
+    if (m_debug) {
+        ResourceManager::getProgram("debugNormals").use();
+        glDrawElements(GL_TRIANGLES, m_oceanPlane.getIndices().size(), GL_UNSIGNED_INT, 0);
+    }
     m_oceanPlane.unbind();
 }

@@ -4,6 +4,8 @@ in vec4 viewPosition;
 in vec4 surfaceNormal;
 in vec4 fragmentPosition;
 
+uniform int wireframe;
+
 float easeOutCubic(float x) {
     return 1.0 - pow(1.0 - x, 3);
     //return x == 1.0 ? 1.0 : 1.0 - pow(2.0, -10. * x);
@@ -48,4 +50,7 @@ void main() {
     vec4 specular = sunlightColor * spec * specularStrength;
 
     color = (ambient + diffuse + specular) * waterColor;
+    if (wireframe == 1) {
+        color = waterColor;
+    }
 }
