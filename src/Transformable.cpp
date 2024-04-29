@@ -46,7 +46,7 @@ void Transformable::scale(glm::vec3 factor) { setScale(m_scale * factor); }
 
 void Transformable::rotate(glm::vec3 angle) { setRotation(m_rotation + angle); }
 
-glm::mat4 Transformable::getTransform() {
+glm::mat4& Transformable::getTransform() {
     if (m_transformNeedUpdate) {
         updateTransform();
     }

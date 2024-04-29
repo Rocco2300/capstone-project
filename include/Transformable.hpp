@@ -29,7 +29,7 @@ public:
     void scale(glm::vec3 factor);
     void rotate(glm::vec3 angle);
 
-    glm::mat4 getTransform();
+    glm::mat4& getTransform();
 
 private:
     void updateTransform();

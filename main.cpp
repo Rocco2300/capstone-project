@@ -53,21 +53,14 @@ int main() {
         return -1;
     }
 
-    int size      = 256;
-    int prevSize  = 256;
-    float spacing = 64.f / size;
+    int size     = 256;
+    int prevSize = 256;
 
     loadShaders();
     loadImages(size);
     loadTextures(size);
 
     Profiler::initialize();
-
-    Plane oceanPlane;
-    oceanPlane.setSpacing(spacing);
-    oceanPlane.generate(size, size);
-    oceanPlane.setOrigin({oceanPlane.getSize().x / 2.f, 0.f, oceanPlane.getSize().y / 2.f});
-    oceanPlane.setPosition({0.f, -2.f, 0.f});
 
     Camera camera;
     camera.setPerspective(45.f, 1280.f / 720.f);
@@ -84,9 +77,9 @@ int main() {
     glEnable(GL_DEPTH_TEST);
 
     auto& program = ResourceManager::getProgram("ocean");
-    program.setUniform("spacing", spacing);
+    program.setUniform("spacing", simulation.getSpacing());
     program.setUniform("view", camera.getView());
-    program.setUniform("model", oceanPlane.getTransform());
+    program.setUniform("model", simulation.getTransform());
     program.setUniform("projection", camera.getProjection());
 
     IMGUI_CHECKVERSION();
@@ -116,14 +109,8 @@ int main() {
 
         if (shouldReinitialize) {
             if (shouldResize) {
-                oceanPlane.setSpacing(spacing);
-                oceanPlane.generate(size, size);
-                program.setUniform("spacing", spacing);
-
-                ResourceManager::resizeImages(size);
-                ResourceManager::resizeTextures(size);
+                program.setUniform("spacing", simulation.getSpacing());
                 simulation.setSize(size);
-
                 shouldResize = false;
             }
 
@@ -180,8 +167,7 @@ int main() {
             sizeLog2 = glm::log2(static_cast<float>(size));
             sizeLog2 = glm::round(sizeLog2);
 
-            size    = glm::pow(2, sizeLog2);
-            spacing = 64.f / size;
+            size = glm::pow(2, sizeLog2);
             if (size != prevSize) {
                 shouldResize = true;
                 prevSize     = size;
@@ -236,7 +222,7 @@ int main() {
         ImGui::Begin("Debug");
 
         if (ImGui::Button("Toggle wireframe")) {
-            wireframe = !wireframe;
+            wireframe        = !wireframe;
             auto polygonMode = (wireframe) ? GL_LINE : GL_FILL;
             glPolygonMode(GL_FRONT_AND_BACK, polygonMode);
         }
@@ -255,9 +241,7 @@ int main() {
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        oceanPlane.bind();
-        glDrawElements(GL_TRIANGLES, oceanPlane.getIndices().size(), GL_UNSIGNED_INT, 0);
-        oceanPlane.unbind();
+        simulation.draw();
         Profiler::queryEnd();
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

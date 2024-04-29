@@ -2,6 +2,7 @@
 
 #include "DFT.hpp"
 #include "FFT.hpp"
+#include "Plane.hpp"
 #include "Spectrum.hpp"
 
 class Program;
@@ -18,10 +19,12 @@ enum class Algorithm : int {
 class Simulation {
 private:
     int m_size{};
+    double m_spacing{};
 
     DFT m_dft;
     FFT m_fft;
 
+    Plane m_oceanPlane;
     Spectrum m_spectrum;
     Program* m_textureMerger;
 
@@ -30,6 +33,8 @@ private:
 public:
     Simulation(int size);
 
+    float getSpacing();
+    glm::mat4& getTransform();
     SpectrumParameters& params();
 
     void setSize(int size);
@@ -37,4 +42,5 @@ public:
 
     void initialize();
     void update(float time);
+    void draw();
 };
