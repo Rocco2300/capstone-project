@@ -122,7 +122,6 @@ int main() {
         if (shouldReinitialize) {
             if (shouldResize) {
                 simulation.setSize(size);
-                program.setUniform("spacing", simulation.getSpacing());
                 shouldResize = false;
             }
 

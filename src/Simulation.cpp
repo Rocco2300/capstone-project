@@ -43,6 +43,9 @@ void Simulation::setSize(int size) {
     m_oceanPlane.setSpacing(m_spacing);
     m_oceanPlane.generate(m_size, m_size);
 
+    ResourceManager::getProgram("ocean").setUniform("spacing", m_spacing);
+    ResourceManager::getProgram("debugNormals").setUniform("spacing", m_spacing);
+
     ResourceManager::resizeImages(m_size);
     ResourceManager::resizeTextures(m_size);
 
@@ -99,7 +102,6 @@ void Simulation::update(float time) {
     }
 
     m_textureMerger->use();
-    m_textureMerger->setUniform("displaceNormals", displaceNormals);
     glDispatchCompute(m_size / THREAD_NUMBER, m_size / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 }

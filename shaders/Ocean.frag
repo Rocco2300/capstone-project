@@ -27,11 +27,12 @@ void main() {
     vec3 viewPos = vec3(viewPosition);
     vec3 fragPos = vec3(fragmentPosition);
 
-    float azimuth = radians(0.0);
-    float inclination = radians(90.0);
-    float lightX = sin(inclination) * cos(azimuth);
-    float lightY = sin(inclination) * cos(azimuth);
-    float lightZ = cos(inclination);
+    float radius = 1.0;
+    float azimuth = radians(25.0);
+    float inclination = radians(35.0);
+    float lightX = radius * sin(azimuth) * cos(inclination);
+    float lightY = radius * cos(azimuth);
+    float lightZ = radius * sin(azimuth) * cos(inclination);
     vec3 lightDir = normalize(vec3(lightX, lightY, lightZ));
     vec3 viewDir = normalize(viewPos - fragPos);
     vec3 halfwayDir = normalize(lightDir + viewDir);
