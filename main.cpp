@@ -128,6 +128,7 @@ int main() {
 
             simulation.initialize();
             shouldReinitialize = false;
+            time = 0.0;
         }
 
         // TODO: use double everywhere for time
