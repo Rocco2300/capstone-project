@@ -8,6 +8,8 @@ layout(rgba32f, binding = BUFFERS_UNIT) uniform image2DArray buffers;
 layout(rgba32f, binding = DISPLACEMENT_UNIT) uniform image2D displacement;
 layout(rgba32f, binding = NORMAL_UNIT) uniform image2D normal;
 
+uniform int displaceNormals;
+
 void main() {
     ivec2 id = ivec2(gl_GlobalInvocationID.xy);
 
@@ -15,8 +17,14 @@ void main() {
     vec2 d  = imageLoad(buffers, ivec3(id, DISPLACEMENT_INDEX)).rg;
     vec4 n = imageLoad(buffers, ivec3(id, NORMAL_INDEX));
 
+    vec3 normalVec;
     vec3 displacementVec = vec3(d.x, h, d.y);
-    vec3 normalVec = normalize(vec3(d.x, 1.0 - n.x, d.y));
+    if (displaceNormals == 1) {
+        normalVec = normalize(vec3(d.x, 1.0 - n.x, d.y));
+    } else {
+        float denominator = sqrt(1.0 + n.x * n.x);
+        normalVec = normalize(vec3(-n.x, 1.0, -n.y) / denominator);
+    }
 
     imageStore(displacement, id, vec4(displacementVec, 1.0));
     imageStore(normal, id, vec4(normalVec, 1.0));

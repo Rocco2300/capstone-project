@@ -74,9 +74,11 @@ void Simulation::initialize() { m_spectrum.initialize(); }
 void Simulation::update(float time) {
     m_spectrum.update(time);
 
+    bool displaceNormals = true;
     switch (m_algorithm) {
     case Algorithm::Sines:
         m_dft.dispatchSines();
+        displaceNormals = false;
         break;
     case Algorithm::Gerstner:
         m_dft.dispatchGerstner();
@@ -97,6 +99,7 @@ void Simulation::update(float time) {
     }
 
     m_textureMerger->use();
+    m_textureMerger->setUniform("displaceNormals", displaceNormals);
     glDispatchCompute(m_size / THREAD_NUMBER, m_size / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 }

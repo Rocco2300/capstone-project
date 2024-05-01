@@ -25,6 +25,6 @@ void main() {
     imageStore(buffers, ivec3(id, DY_INDEX), vec4(h, 0.0, 1.0));
 
     vec2 ih = vec2(-h.y, h.x);
-    imageStore(buffers, ivec3(id, DYX_DYZ_INDEX), vec4(complexMul(ih, wave), 0.0, 1.0));
+    imageStore(buffers, ivec3(id, DYX_DYZ_INDEX), vec4(complexMul(ih, normalize(wave)), 0.0, 1.0));
     imageStore(buffers, ivec3(id, DX_DZ_INDEX), vec4(complexMul(-ih, wave * invLength), 0.0, 0.0));
 }

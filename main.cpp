@@ -1,7 +1,6 @@
 #include "Camera.hpp"
 #include "Globals.hpp"
 #include "Input.hpp"
-#include "Plane.hpp"
 #include "Profiler.hpp"
 #include "ResourceManager.hpp"
 #include "Shader.hpp"
@@ -242,7 +241,7 @@ int main() {
         if (ImGui::Button("Toggle wireframe")) {
             wireframe        = !wireframe;
             auto polygonMode = (wireframe) ? GL_LINE : GL_FILL;
-            glPolygonMode(GL_FRONT_AND_BACK, polygonMode);
+            glPolygonMode(GL_FRONT, polygonMode);
 
             program.setUniform("wireframe", wireframe);
         }

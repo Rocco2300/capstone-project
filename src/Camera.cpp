@@ -4,6 +4,8 @@
 #include <GLFW/glfw3.h>
 #include <glm/gtx/euler_angles.hpp>
 
+#include <fmt/core.h>
+
 glm::mat4 Camera::getView() {
     if (m_viewNeedUpdate) {
         updateView();
@@ -56,6 +58,24 @@ void Camera::update(float deltaTime) {
         m_viewNeedUpdate = true;
     }
 
+    float rotSpeed = 100.0f;
+    if (Keyboard::isKeyPressed(GLFW_KEY_UP)) {
+        m_pitch -= rotSpeed * deltaTime;
+        m_viewNeedUpdate = true;
+    }
+    if (Keyboard::isKeyPressed(GLFW_KEY_DOWN)) {
+        m_pitch += rotSpeed * deltaTime;
+        m_viewNeedUpdate = true;
+    }
+    if (Keyboard::isKeyPressed(GLFW_KEY_RIGHT)) {
+        m_yaw += rotSpeed * deltaTime;
+        m_viewNeedUpdate = true;
+    }
+    if (Keyboard::isKeyPressed(GLFW_KEY_LEFT)) {
+        m_yaw -= rotSpeed * deltaTime;
+        m_viewNeedUpdate = true;
+    }
+
     if (Mouse::isButtonPressed(GLFW_MOUSE_BUTTON_RIGHT)) {
         Mouse::setCursorMode(GLFW_CURSOR_DISABLED);
 
@@ -66,17 +86,6 @@ void Camera::update(float deltaTime) {
         m_pitch += mouseDelta.y * m_sensitivity * deltaTime;
         Mouse::setPosition({0.f, 0.f});
 
-        m_pitch = glm::clamp(m_pitch, -80.f, 80.f);
-        if (m_yaw <= -360.f || m_yaw >= 360.f) {
-            m_yaw = 0.f;
-        }
-
-        auto yawRot = glm::rotate(glm::mat4(1.f), glm::radians(m_yaw), glm::vec3(0.f, 1.f, 0.f));
-        m_right     = glm::vec4(m_initialRight, 1.f) * yawRot;
-        m_direction = glm::vec4(m_initialDirection, 1.f) * yawRot;
-
-        auto pitchRot = glm::rotate(glm::mat4(1.f), glm::radians(m_pitch), m_right);
-        m_direction   = glm::vec4(m_direction, 1.f) * pitchRot;
 
         m_rotating       = true;
         m_viewNeedUpdate = true;
@@ -84,6 +93,18 @@ void Camera::update(float deltaTime) {
         m_rotating = false;
         Mouse::setCursorMode(GLFW_CURSOR_NORMAL);
     }
+
+    m_pitch = glm::clamp(m_pitch, -80.f, 80.f);
+    if (m_yaw <= -360.f || m_yaw >= 360.f) {
+        m_yaw = 0.f;
+    }
+
+    auto yawRot = glm::rotate(glm::mat4(1.f), glm::radians(m_yaw), glm::vec3(0.f, 1.f, 0.f));
+    m_right     = glm::vec4(m_initialRight, 1.f) * yawRot;
+    m_direction = glm::vec4(m_initialDirection, 1.f) * yawRot;
+
+    auto pitchRot = glm::rotate(glm::mat4(1.f), glm::radians(m_pitch), m_right);
+    m_direction   = glm::vec4(m_direction, 1.f) * pitchRot;
 }
 
 void Camera::setView(glm::vec3 position, glm::vec3 center) {
