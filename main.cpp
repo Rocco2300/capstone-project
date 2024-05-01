@@ -81,6 +81,8 @@ int main() {
     program.setUniform("model", simulation.getTransform());
     program.setUniform("projection", camera.getProjection());
     program.setUniform("wireframe", false);
+    program.setUniform("azimuth", glm::radians(25.0));
+    program.setUniform("inclination", glm::radians(35.0));
 
     auto& debugNormalsProgram = ResourceManager::getProgram("debugNormals");
     debugNormalsProgram.setUniform("spacing", simulation.getSpacing());
@@ -104,6 +106,9 @@ int main() {
     float windSpeed      = 25.0f;
     float windDirection  = 0.0f;
     auto& spectrumParams = simulation.params();
+
+    float azimuthAngle = glm::radians(25.0);
+    float inclinationAngle = glm::radians(35.0);
 
     bool pause{};
     double time{};
@@ -188,7 +193,7 @@ int main() {
         }
         ImGui::PopItemWidth();
 
-        ImGui::Dummy({100.f, 10.f});
+        ImGui::Dummy({100.f, 5.f});
         ImGui::SeparatorText("Spectrum Parameters");
 
         ImGui::PushItemWidth(100.f);
@@ -196,12 +201,12 @@ int main() {
         ImGui::InputFloat("Patch size", &spectrumParams.patchSize, 0.0f, 0.0f, "%.1f");
         ImGui::InputFloat("Low Cutoff", &spectrumParams.lowCutoff, 0.0f, 0.0f, "%.3f");
         if (ImGui::InputFloat("Wind speed", &windSpeed, 0.0f, 0.0f, "%.1f")) {
-            auto windDir        = windDirection * glm::pi<float>() / 180.0f;
+            auto windDir        = glm::radians(windDirection);
             auto wind           = glm::vec2(glm::cos(windDir), glm::sin(windDir)) * windSpeed;
             spectrumParams.wind = wind;
         }
         if (ImGui::InputFloat("Wind direction", &windDirection, 0.0f, 0.0f, "%.1f")) {
-            auto windDir        = windDirection * glm::pi<float>() / 180.0f;
+            auto windDir        = glm::radians(windDirection);
             auto wind           = glm::vec2(glm::cos(windDir), glm::sin(windDir)) * windSpeed;
             spectrumParams.wind = wind;
         }
@@ -210,6 +215,17 @@ int main() {
         if (ImGui::Button("Reinitialize")) {
             shouldReinitialize = true;
         }
+
+        ImGui::Dummy({100.f, 10.f});
+        ImGui::SeparatorText("Light Settings");
+        ImGui::PushItemWidth(100.f);
+        if (ImGui::SliderAngle("Azimuth", &azimuthAngle, 0.f, 360.f, "%.1f")) {
+            program.setUniform("azimuth", azimuthAngle);
+        }
+        if (ImGui::SliderAngle("Inclination", &inclinationAngle, 0.f, 90.f, "%.1f")) {
+            program.setUniform("inclination", inclinationAngle);
+        }
+        ImGui::PopItemWidth();
 
         ImGui::Dummy({100.f, 40.f});
         ImGui::SeparatorText("Profiling");

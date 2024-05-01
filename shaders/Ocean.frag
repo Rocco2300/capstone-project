@@ -5,22 +5,8 @@ in vec4 surfaceNormal;
 in vec4 fragmentPosition;
 
 uniform int wireframe;
-
-float easeOutCubic(float x) {
-    return 1.0 - pow(1.0 - x, 3);
-    //return x == 1.0 ? 1.0 : 1.0 - pow(2.0, -10. * x);
-}
-
-float easeInCubic(float x) {
-    //return x * x * x;
-    //return 1.0 - cos((x * 3.1415) / 2.0);
-    //if (x < 0.5) {
-    //    return x - 0.025;
-    //} else {
-    //    return x;
-    //}
-    return x;
-}
+uniform double azimuth;
+uniform double inclination;
 
 void main() {
     vec3 normal = vec3(surfaceNormal);
@@ -28,11 +14,11 @@ void main() {
     vec3 fragPos = vec3(fragmentPosition);
 
     float radius = 1.0;
-    float azimuth = radians(25.0);
-    float inclination = radians(35.0);
-    float lightX = radius * sin(azimuth) * cos(inclination);
-    float lightY = radius * cos(azimuth);
-    float lightZ = radius * sin(azimuth) * cos(inclination);
+    float azimuthFlt = float(azimuth);
+    float inclinationFlt = float(inclination);
+    float lightX = radius * sin(inclinationFlt) * cos(azimuthFlt);
+    float lightY = radius * cos(inclinationFlt);
+    float lightZ = radius * sin(inclinationFlt) * sin(azimuthFlt);
     vec3 lightDir = normalize(vec3(lightX, lightY, lightZ));
     vec3 viewDir = normalize(viewPos - fragPos);
     vec3 halfwayDir = normalize(lightDir + viewDir);
