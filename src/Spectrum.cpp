@@ -177,7 +177,7 @@ void Spectrum::evolveCPUSpectrum(float time) {
             dy.g        = h.y;
 
             glm::vec2 ih(-h.y, h.x);
-            glm::vec2 n = complexMul(ih, glm::vec2(wave.r, wave.b));
+            glm::vec2 n = complexMul(ih, glm::normalize(glm::vec2(wave.r, wave.b)));
             glm::vec2 d = complexMul(-ih, glm::vec2(wave.r, wave.b) * wave.g);
             dx_dz.r     = d.x;
             dx_dz.g     = d.y;
