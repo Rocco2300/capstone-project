@@ -10,11 +10,11 @@
 
 #include <memory>
 
-std::unique_ptr<uint32[]> computeReversals(int size) {
+std::vector<uint32> computeReversals(int size) {
     int width  = glm::log2(size);
     int height = size;
 
-    auto res = std::make_unique<uint32[]>(height);
+    auto res = std::vector<uint32>(height);
     for (int i = 0; i < height; i++) {
         int index        = i;
         unsigned int num = 0;
@@ -34,7 +34,7 @@ FFT::FFT(int size) {
     auto reversal = computeReversals(size);
     glGenBuffers(1, &m_ssbo);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_ssbo);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(uint32) * size, reversal.get(), GL_STATIC_DRAW);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(uint32) * size, &reversal[0], GL_STATIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, REVERSED_BINDING, m_ssbo);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
@@ -115,7 +115,7 @@ void FFT::setSize(int size) {
 
     auto reversal = computeReversals(size);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_ssbo);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(uint32) * size, reversal.get(), GL_STATIC_DRAW);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(uint32) * size, &reversal[0], GL_STATIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, REVERSED_BINDING, m_ssbo);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 

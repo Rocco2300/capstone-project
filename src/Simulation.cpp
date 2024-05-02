@@ -63,6 +63,15 @@ void Simulation::setSize(int size) {
 void Simulation::setAlgorithm(Algorithm algorithm) {
     m_algorithm = algorithm;
 
+    // prevent using displacement when changing from gerstner to sines
+    if (algorithm == Algorithm::Sines) {
+        std::vector<float> initialData(4 * m_size * m_size, 0);
+        auto* texArray = &ResourceManager::getTexture("buffers");
+        texArray->setData(&initialData[0], HEIGHT_INDEX);
+        texArray->setData(&initialData[0], NORMAL_INDEX);
+        texArray->setData(&initialData[0], DISPLACEMENT_INDEX);
+    }
+
     if (algorithm == Algorithm::SlowGerstner || algorithm == Algorithm::SlowFFT) {
         m_spectrum.setAccelerated(false);
     } else {
