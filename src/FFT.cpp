@@ -7,34 +7,20 @@
 #include <GL/gl3w.h>
 
 #include <glm/gtx/integer.hpp>
+#include <glm/gtc/constants.hpp>
 
-#include <memory>
-
-std::vector<uint32> computeReversals(int size) {
-    int width  = glm::log2(size);
-    int height = size;
-
-    auto res = std::vector<uint32>(height);
-    for (int i = 0; i < height; i++) {
-        int index        = i;
-        unsigned int num = 0;
-        for (int j = 0; j < width; j++) {
-            num = (num << 1) + (index & 1);
-            index >>= 1;
-        }
-        res[i] = num;
-    }
-    return res;
-}
+#include <fmt/core.h>
 
 FFT::FFT(int size) {
     m_width  = glm::log2(size);
     m_height = size;
 
-    auto reversal = computeReversals(size);
+    computeReversals();
+    computeTwiddleFactors();
+
     glGenBuffers(1, &m_ssbo);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_ssbo);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(uint32) * size, &reversal[0], GL_STATIC_DRAW);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(uint32) * size, &m_reversed[0], GL_STATIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, REVERSED_BINDING, m_ssbo);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
@@ -44,10 +30,30 @@ FFT::FFT(int size) {
     glDispatchCompute(m_width, m_height / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-    m_ifftProgram = &ResourceManager::getProgram("ifft");
-    m_copyProgram = &ResourceManager::getProgram("copyTexture");
+    m_ifftProgram             = &ResourceManager::getProgram("ifft");
+    m_copyProgram             = &ResourceManager::getProgram("copyTexture");
     m_invertAndPermuteProgram = &ResourceManager::getProgram("invert");
     m_invertAndPermuteProgram->setUniform("size", size);
+}
+
+void FFT::setSize(int size) {
+    m_width  = glm::log2(size);
+    m_height = size;
+
+    m_butterflyProgram->setUniform("size", m_height);
+    m_invertAndPermuteProgram->setUniform("size", size);
+
+    computeReversals();
+    computeTwiddleFactors();
+
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_ssbo);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(uint32) * size, &m_reversed[0], GL_STATIC_DRAW);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, REVERSED_BINDING, m_ssbo);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+    m_butterflyProgram->use();
+    glDispatchCompute(m_width, m_height / THREAD_NUMBER, 1);
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 }
 
 void FFT::dispatchIFFT(int input, int output) {
@@ -106,20 +112,21 @@ void FFT::dispatchIFFT(int input, int output) {
     Profiler::functionEnd("ComputeOceanSurface");
 }
 
-void FFT::setSize(int size) {
-    m_width  = glm::log2(size);
-    m_height = size;
+void FFT::dispatchCPUIFFT(int input, int output) {
+    int pingpong = 0;
+    for (int i = 0; i < m_height; i++) {
 
-    m_butterflyProgram->setUniform("size", m_height);
-    m_invertAndPermuteProgram->setUniform("size", size);
+    }
+    //for (int i = 0; i < m_twiddle.size(); i++) {
+    //    auto& m_twiddleRow = m_twiddle[i];
+    //    for (int j = 0; j < m_twiddleRow.size(); j++) {
+    //        fmt::print("{},{} ", m_twiddleRow[j].x, m_twiddleRow[j].y);
+    //    }
+    //    fmt::print("\n");
+    //}
+}
 
-    auto reversal = computeReversals(size);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_ssbo);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(uint32) * size, &reversal[0], GL_STATIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, REVERSED_BINDING, m_ssbo);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+void FFT::horizontalFFT(const std::string& input, const std::string& output, int index) {
+    auto& image = ResourceManager::getImage(input);
 
-    m_butterflyProgram->use();
-    glDispatchCompute(m_width, m_height / THREAD_NUMBER, 1);
-    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 }

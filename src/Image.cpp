@@ -55,6 +55,19 @@ Pixel& Image::at(int x, int y) {
     return m_data.at(index);
 }
 
+std::vector<Pixel> Image::row(int index) {
+    int idx = index * m_width;
+    return {&m_data[idx], &m_data[idx] + m_width};
+}
+
+std::vector<Pixel> Image::column(int index) {
+    std::vector<Pixel> column;
+    for (int i = 0; i < m_height; i++) {
+        column.push_back(this->at(index, i));
+    }
+    return column;
+}
+
 void* Image::data() { return &m_data[0]; }
 
 uint16 Image::width() { return m_width; }
