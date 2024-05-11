@@ -32,9 +32,13 @@ public:
     Image& operator=(const Image& other) = delete;
 
     void setSize(uint16 width, uint16 height);
+    void setRow(std::vector<Pixel>& row, int index);
+    void setColumn(std::vector<Pixel>& column, int index);
 
     Pixel& at(int index);
     Pixel& at(int x, int y);
+    std::vector<Pixel> row(int index);
+    std::vector<Pixel> column(int index);
 
     virtual void* data();
     virtual uint16 width();
