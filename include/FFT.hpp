@@ -2,10 +2,6 @@
 
 #include "Types.hpp"
 
-#include <glm/glm.hpp>
-
-#include <vector>
-
 class Program;
 
 class FFT {
@@ -20,17 +16,9 @@ private:
     Program* m_butterflyProgram;
     Program* m_invertAndPermuteProgram;
 
-    std::vector<uint32> m_reversed;
-    std::vector<std::vector<glm::vec2>> m_twiddle;
-
 public:
     FFT(int size);
 
-    void setSize(int size);
-
     void dispatchIFFT(int input, int output);
-    void dispatchCPUIFFT(int input, int output);
-
-private:
-    void horizontalFFT(const std::string& input, const std::string& output, int index);
+    void setSize(int size);
 };

@@ -35,8 +35,6 @@ public:
 
     Pixel& at(int index);
     Pixel& at(int x, int y);
-    std::vector<Pixel> row(int index);
-    std::vector<Pixel> column(int index);
 
     virtual void* data();
     virtual uint16 width();

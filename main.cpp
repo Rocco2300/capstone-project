@@ -68,7 +68,7 @@ int main() {
     camera.setSensitivity(5.f);
 
     Simulation simulation(size);
-    simulation.setAlgorithm(Algorithm::FFT);
+    simulation.setAlgorithm(Algorithm::Gerstner);
     simulation.initialize();
 
     glCullFace(GL_BACK);
@@ -98,7 +98,7 @@ int main() {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 460");
 
-    int algo                = 3;
+    int algo                = 2;
     bool wireframe          = false;
     bool shouldResize       = false;
     bool shouldReinitialize = false;
@@ -107,7 +107,7 @@ int main() {
     float windDirection  = 0.0f;
     auto& spectrumParams = simulation.params();
 
-    float azimuthAngle     = glm::radians(25.0);
+    float azimuthAngle = glm::radians(25.0);
     float inclinationAngle = glm::radians(35.0);
 
     bool pause{};
@@ -132,7 +132,7 @@ int main() {
 
             simulation.initialize();
             shouldReinitialize = false;
-            time               = 0.0;
+            time = 0.0;
         }
 
         // TODO: use double everywhere for time
@@ -241,7 +241,7 @@ int main() {
         if (ImGui::Button("Profile")) {
             if (!Profiler::profiling() && Profiler::resultsAvailable()) {
                 shouldReinitialize = true;
-                Profiler::beginProfiling(algorithms[algo], 60.0);
+                Profiler::beginProfiling(algorithms[algo], 0.0125);
             }
         }
         ImGui::SameLine();
@@ -255,9 +255,9 @@ int main() {
             pause = !pause;
         }
         if (ImGui::Button("Toggle wireframe")) {
-            wireframe = !wireframe;
-            auto polyMode = (wireframe) ? GL_LINE : GL_FILL;
-            glPolygonMode(GL_FRONT, polyMode);
+            wireframe        = !wireframe;
+            auto polygonMode = (wireframe) ? GL_LINE : GL_FILL;
+            glPolygonMode(GL_FRONT, polygonMode);
 
             program.setUniform("wireframe", wireframe);
         }

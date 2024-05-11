@@ -25,8 +25,6 @@ Simulation::Simulation(int size)
     m_oceanPlane.setOrigin({m_oceanPlane.getSize().x / 2.f, 0.f, m_oceanPlane.getSize().y / 2.f});
     m_oceanPlane.setPosition({0.f, -2.f, 0.f});
 
-    m_fft.dispatchCPUIFFT(0, 1);
-
     m_textureMerger = &ResourceManager::getProgram("textureMerger");
 }
 
