@@ -101,12 +101,17 @@ void Simulation::update(float time) {
         m_dft.dispatchIDFT(DYX_DYZ_INDEX, NORMAL_INDEX);
         break;
     case Algorithm::FFT:
-        m_fft.dispatchIFFT(DY_INDEX, HEIGHT_INDEX);
-        m_fft.dispatchIFFT(DX_DZ_INDEX, DISPLACEMENT_INDEX);
-        m_fft.dispatchIFFT(DYX_DYZ_INDEX, NORMAL_INDEX);
+        m_fft.dispatchIFFTGPU(DY_INDEX, HEIGHT_INDEX);
+        m_fft.dispatchIFFTGPU(DX_DZ_INDEX, DISPLACEMENT_INDEX);
+        m_fft.dispatchIFFTGPU(DYX_DYZ_INDEX, NORMAL_INDEX);
         break;
     case Algorithm::SlowGerstner:
         m_dft.dispatchGerstnerCPU();
+        break;
+    case Algorithm::SlowFFT:
+        m_fft.dispatchIFFTCPU("dy", HEIGHT_INDEX);
+        m_fft.dispatchIFFTCPU("dx_dz", DISPLACEMENT_INDEX);
+        m_fft.dispatchIFFTCPU("dyx_dyz", NORMAL_INDEX);
         break;
     }
 

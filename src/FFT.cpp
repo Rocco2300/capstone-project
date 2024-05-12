@@ -6,6 +6,7 @@
 
 #include <GL/gl3w.h>
 
+#include <glm/gtc/constants.hpp>
 #include <glm/gtx/integer.hpp>
 
 #include <memory>
@@ -44,13 +45,13 @@ FFT::FFT(int size) {
     glDispatchCompute(m_width, m_height / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-    m_ifftProgram = &ResourceManager::getProgram("ifft");
-    m_copyProgram = &ResourceManager::getProgram("copyTexture");
+    m_ifftProgram             = &ResourceManager::getProgram("ifft");
+    m_copyProgram             = &ResourceManager::getProgram("copyTexture");
     m_invertAndPermuteProgram = &ResourceManager::getProgram("invert");
     m_invertAndPermuteProgram->setUniform("size", size);
 }
 
-void FFT::dispatchIFFT(int input, int output) {
+void FFT::dispatchIFFTGPU(int input, int output) {
     Profiler::functionBegin("ComputeOceanSurface");
 
     int pingpong = 0;
@@ -122,4 +123,78 @@ void FFT::setSize(int size) {
     m_butterflyProgram->use();
     glDispatchCompute(m_width, m_height / THREAD_NUMBER, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+}
+
+void FFT::dispatchIFFTCPU(const std::string& input, int output) {
+    Profiler::functionBegin("ComputeOceanSurface");
+
+    Image outputImage(m_width, m_height);
+    auto& inputImage = ResourceManager::getImage(input);
+
+    for (int i = 0; i < m_height; i++) {
+        auto row = inputImage.row(i);
+        ifft(row);
+        inputImage.setRow(row, i);
+    }
+
+    for (int i = 0; i < m_width; i++) {
+        auto column = inputImage.column(i);
+        ifft(column);
+        outputImage.setColumn(column, i);
+    }
+
+    for (int y = 0; y < m_height; y++) {
+        for (int x = 0; x < m_width; x++) {
+            auto& pixel = outputImage.at(x, y);
+
+            float perms[] = {1.0f, -1.0f};
+            int index = (x + y) % 2;
+            float perm = perms[index];
+
+            pixel /= m_width * m_height;
+            pixel *= perm;
+        }
+    }
+
+    Profiler::queryBegin();
+    ResourceManager::getTexture("buffers").setData(outputImage.data(), output);
+    Profiler::queryEnd();
+
+    Profiler::functionEnd("ComputeOceanSurface");
+}
+
+static Pixel twiddle(float phase) {
+    Pixel ret;
+    ret.x = glm::cos(phase);
+    ret.y = glm::sin(phase);
+    return ret;
+}
+
+static Pixel complexMul(Pixel a, Pixel b) {
+    Pixel ret;
+    ret.x = a.x * b.x - a.y * b.y;
+    ret.y = a.x * b.y + a.y * b.x;
+    return ret;
+}
+
+void FFT::ifft(std::vector<Pixel>& a) {
+    int n = a.size();
+    if (n == 1) {
+        return;
+    }
+
+    std::vector<Pixel> odd(n / 2), even(n / 2);
+    for (int i = 0; i < n / 2; i++) {
+        even[i] = a[i * 2];
+        odd[i]  = a[i * 2 + 1];
+    }
+    ifft(odd);
+    ifft(even);
+
+    auto w = 2.f
+    for (int i = 0; i < n / 2; i++) {
+        auto w       = twiddle(2.f * glm::pi<float>() / n);
+        a[i]         = even[i] + complexMul(w, odd[i]);
+        a[i + n / 2] = even[i] - complexMul(w, odd[i]);
+    }
 }

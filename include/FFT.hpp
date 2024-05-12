@@ -1,6 +1,9 @@
 #pragma once
 
 #include "Types.hpp"
+#include "Image.hpp"
+
+#include <vector>
 
 class Program;
 
@@ -19,6 +22,10 @@ private:
 public:
     FFT(int size);
 
-    void dispatchIFFT(int input, int output);
+    void dispatchIFFTGPU(int input, int output);
+    void dispatchIFFTCPU(const std::string& input, int output);
     void setSize(int size);
+
+private:
+    void ifft(std::vector<Pixel>& a);
 };

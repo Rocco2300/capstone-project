@@ -174,8 +174,10 @@ int main() {
                 simulation.setAlgorithm(Algorithm::FFT);
                 break;
             case 4:
-            case 5:
                 simulation.setAlgorithm(Algorithm::SlowGerstner);
+                break;
+            case 5:
+                simulation.setAlgorithm(Algorithm::SlowFFT);
                 break;
             }
         }
