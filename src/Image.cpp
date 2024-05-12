@@ -1,7 +1,6 @@
 #include "Image.hpp"
 
-#include "Assert.hpp"
-
+#include <cstring>
 #include <fstream>
 #include <random>
 
@@ -49,36 +48,11 @@ void Image::setSize(uint16 width, uint16 height) {
     m_data.resize(4 * width * height);
 }
 
-void Image::setRow(std::vector<Pixel>& row, int index) {
-    massert(row.size() == m_width, "Width of row is different than of image width.");
-    for (int i = 0; i < m_width; i++) {
-        this->at(i, index) = row.at(i);
-    }
-}
-
-void Image::setColumn(std::vector<Pixel>& column, int index) {
-    massert(column.size() == m_height, "Width of column is different than of image height.");
-    for (int i = 0; i < m_height; i++) {
-        this->at(index, i) = column.at(i);
-    }
-}
-
 Pixel& Image::at(int index) { return m_data.at(index); }
 
 Pixel& Image::at(int x, int y) {
     int index = y * m_width + x;
     return m_data.at(index);
-}
-
-std::vector<Pixel> Image::row(int index) {
-    int idx = index * m_width;
-    return {&m_data[idx], &m_data[idx] + m_width};
-}
-
-std::vector<Pixel> Image::column(int index) {
-    std::vector<Pixel> column(m_height);
-    for (int i = 0; i < m_height; i++) { column[i] = this->at(i, index); }
-    return column;
 }
 
 void* Image::data() { return &m_data[0]; }
