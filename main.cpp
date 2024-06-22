@@ -103,6 +103,7 @@ int main() {
     bool shouldResize       = false;
     bool shouldReinitialize = false;
 
+    float profileTime    = 1.f;
     float windSpeed      = 25.0f;
     float windDirection  = 0.0f;
     auto& spectrumParams = simulation.params();
@@ -230,22 +231,14 @@ int main() {
         ImGui::Dummy({100.f, 40.f});
         ImGui::SeparatorText("Profiling");
         ImGui::PushItemWidth(100.f);
-        float a;
-        auto b = std::make_unique<char[]>(32);
-        ImGui::InputFloat("Profile time", &a, 0.0f, 0.0f, "%.1f");
-        ImGui::Text("Save location");
-        ImGui::PopItemWidth();
-        ImGui::PushItemWidth(220.f);
-        ImGui::InputText("##", b.get(), 32);
+        ImGui::InputFloat("Profile time", &profileTime, 0.0f, 0.0f, "%.1f");
         ImGui::PopItemWidth();
         if (ImGui::Button("Profile")) {
             if (!Profiler::profiling() && Profiler::resultsAvailable()) {
                 shouldReinitialize = true;
-                Profiler::beginProfiling(algorithms[algo], 0.0125);
+                Profiler::beginProfiling(algorithms[algo], profileTime);
             }
         }
-        ImGui::SameLine();
-        if (ImGui::Button("Benchmark")) {}
 
         ImGui::End();
 
@@ -266,7 +259,6 @@ int main() {
             simulation.toggleDebug();
         }
 
-        ImGui::Image(ResourceManager::getDebugTexture(BUTTERFLY_INDEX), {256, 256}, {0, 1}, {1, 0});
         ImGui::Image(ResourceManager::getTexture("normal"), {256, 256}, {0, 1}, {1, 0});
         ImGui::Image(ResourceManager::getTexture("displacement"), {256, 256}, {0, 1}, {1, 0});
 
