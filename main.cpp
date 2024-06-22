@@ -1,5 +1,4 @@
 #include "Camera.hpp"
-#include "Globals.hpp"
 #include "Input.hpp"
 #include "Profiler.hpp"
 #include "ResourceManager.hpp"
@@ -8,8 +7,6 @@
 
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
-
-#include <glm/gtc/constants.hpp>
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
