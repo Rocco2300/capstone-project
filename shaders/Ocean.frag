@@ -1,8 +1,8 @@
 layout (location = 0) out vec4 color;
 
-in vec4 viewPosition;
-in vec4 surfaceNormal;
-in vec4 fragmentPosition;
+in vec3 viewPosition;
+in vec3 surfaceNormal;
+in vec3 fragmentPosition;
 
 uniform int wireframe;
 uniform double azimuth;
@@ -28,7 +28,7 @@ void main() {
     vec4 sunlightColor = vec4(1.0, 0.99, 0.87, 1.0);
     vec4 ambientLightColor = vec4(1.0, 0.34, 0.2, 1.0);
 
-    float ambientStrength = 0.2;
+    float ambientStrength = 0.3;
     float specularStrength = 0.5;
     float diffuseStrength = max(0.0, dot(normal, lightDir));
     float spec = pow(max(dot(normal, halfwayDir), 0.0), 128.0);

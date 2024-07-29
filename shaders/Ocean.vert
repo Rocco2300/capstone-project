@@ -14,9 +14,9 @@ uniform vec4 cameraPosition;
 uniform double size;
 uniform double spacing;
 
-out vec4 viewPosition;
-out vec4 surfaceNormal;
-out vec4 fragmentPosition;
+out vec3 viewPosition;
+out vec3 surfaceNormal;
+out vec3 fragmentPosition;
 
 void main() {
     //vec2 coords = position.xz * (1.0 / float(spacing));
@@ -29,7 +29,11 @@ void main() {
 
     gl_Position = projection * view * model * finalPos;
 
-    viewPosition = cameraPosition;
-    surfaceNormal = texture(normal, coords);
-    fragmentPosition = model * finalPos;
+    viewPosition = cameraPosition.xyz;
+
+    vec3 normalVec = texture(normal, coords).xyz;
+    mat3 normalMat = mat3(transpose(inverse(model)));
+
+    surfaceNormal = normalize(normalMat * normalVec);
+    fragmentPosition = vec3(model * finalPos);
 }
