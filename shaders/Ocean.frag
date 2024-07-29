@@ -9,7 +9,7 @@ uniform double azimuth;
 uniform double inclination;
 
 void main() {
-    vec3 normal = vec3(surfaceNormal);
+    vec3 normal = normalize(vec3(surfaceNormal));
     vec3 viewPos = vec3(viewPosition);
     vec3 fragPos = vec3(fragmentPosition);
 
@@ -19,6 +19,7 @@ void main() {
     float lightX = radius * sin(inclinationFlt) * cos(azimuthFlt);
     float lightY = radius * cos(inclinationFlt);
     float lightZ = radius * sin(inclinationFlt) * sin(azimuthFlt);
+
     vec3 lightDir = normalize(vec3(lightX, lightY, lightZ));
     vec3 viewDir = normalize(viewPos - fragPos);
     vec3 halfwayDir = normalize(lightDir + viewDir);
