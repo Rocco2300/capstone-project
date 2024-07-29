@@ -21,6 +21,7 @@ public:
     ResourceManager() = delete;
 
     static void resizeTextures(int size);
+    static void bindTexture(const std::string& name);
     static Texture& resizeTexture(const std::string& name, int size, int depth = 1);
     static Texture& getTexture(const std::string& name);
     static Texture& getDebugTexture(int index);

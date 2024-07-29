@@ -4,6 +4,7 @@
 #include "ResourceManager.hpp"
 #include "Shader.hpp"
 #include "Simulation.hpp"
+#include "Globals.hpp"
 
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
@@ -73,9 +74,10 @@ int main() {
     glEnable(GL_DEPTH_TEST);
 
     auto& program = ResourceManager::getProgram("ocean");
-    program.setUniform("spacing", simulation.getSpacing());
+    program.setUniform("size", static_cast<float>(size));
     program.setUniform("view", camera.getView());
     program.setUniform("model", simulation.getTransform());
+    program.setUniform("spacing", simulation.getSpacing());
     program.setUniform("projection", camera.getProjection());
     program.setUniform("wireframe", false);
     program.setUniform("azimuth", glm::radians(25.0));
@@ -256,6 +258,7 @@ int main() {
             simulation.toggleDebug();
         }
 
+        ImGui::Image(ResourceManager::getDebugTexture(H0K_INDEX), {256, 256}, {0, 1}, {1, 0});
         ImGui::Image(ResourceManager::getTexture("normal"), {256, 256}, {0, 1}, {1, 0});
         ImGui::Image(ResourceManager::getTexture("displacement"), {256, 256}, {0, 1}, {1, 0});
 
@@ -266,6 +269,9 @@ int main() {
         Profiler::queryBegin("DrawOceanSurface");
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        ResourceManager::bindTexture("displacement");
+        ResourceManager::bindTexture("normal");
 
         simulation.draw();
         Profiler::queryEnd();

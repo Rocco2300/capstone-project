@@ -22,6 +22,8 @@ Texture::operator ImTextureID() const { return reinterpret_cast<ImTextureID>(m_i
 
 int Texture::target() { return m_target; }
 
+uint32 Texture::binding() { return m_binding; }
+
 glm::vec3 Texture::size() { return {m_width, m_height, m_depth}; }
 
 void Texture::create() {
@@ -55,6 +57,10 @@ void Texture::setFormat(int internalFormat, int format, int type) {
     m_type           = type;
     m_format         = format;
     m_internalFormat = internalFormat;
+}
+
+void Texture::setBinding(uint32 binding) {
+    m_binding = binding;
 }
 
 void Texture::updateImage(void* data, int index) {

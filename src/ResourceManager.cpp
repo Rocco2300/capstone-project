@@ -29,6 +29,16 @@ void ResourceManager::resizeTextures(int size) {
     for (auto& [_, texture]: m_textures) { texture.setSize(size, size, 1); }
 }
 
+void ResourceManager::bindTexture(const std::string& name) {
+    auto it = m_textures.find(name);
+    massert(it != m_textures.end(), "Cannot find texture {}", name);
+
+    auto& texture = it->second;
+
+    glActiveTexture(GL_TEXTURE0 + texture.binding());
+    glBindTexture(texture.target(), texture);
+}
+
 Texture& ResourceManager::resizeTexture(const std::string& name, int size, int depth) {
     auto& texture = ResourceManager::getTexture(name);
     texture.setSize(size, size, depth);
@@ -141,6 +151,7 @@ Texture& ResourceManager::insertTexture(const std::string& name,
 
     texture.setSize(size, size, depth);
     texture.setFormat(internalFormat, format, GL_FLOAT);
+    texture.setBinding(binding);
     texture.create();
 
     int layered = (depth > 1) ? GL_TRUE : GL_FALSE;
